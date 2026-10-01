@@ -22,7 +22,9 @@
     if (!box.width || !box.height || !stage.width) return;
     const cx = stage.left - box.left + stage.width / 2;
     const cy = stage.top - box.top + stage.height / 2;
-    const radius = Math.min(stage.width * .78, box.width * .33, stage.height * .58);
+    // Reserve the idle geometry: longer project descriptions must not inflate the rings.
+    const minStageHeight = parseFloat(getComputedStyle(space).minHeight) || 320;
+    const radius = Math.min(stage.width * .78, box.width * .33, minStageHeight * .58);
     pattern.setAttribute('viewBox', `0 0 ${box.width} ${box.height}`);
     const nodes = [];
     for (const scale of [1, .78, .54]) {

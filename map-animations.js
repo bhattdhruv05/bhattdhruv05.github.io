@@ -48,12 +48,12 @@
     binary(ctx, t);
     ctx.fillStyle = '#041322ed';
     ctx.fillRect(10, 15, 140, 131);
-    ctx.font = 'bold 8px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = 'bold 9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.textAlign = 'left';
     ctx.fillStyle = '#b6e8ff';
     ctx.fillText('ENERGY  /  VIEW B', 17, 29);
     ctx.fillStyle = '#7198b2';
-    ctx.font = '7px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = '9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.fillText('R² BY TEST SPLIT', 17, 39);
     const base = 113, height = 55;
     ctx.strokeStyle = '#234459';
@@ -79,7 +79,7 @@
       ctx.textAlign = 'center';
       ctx.font = 'bold 9px ui-monospace, SFMono-Regular, Consolas, monospace';
       if (progress > .96) ctx.fillText(bar.value.toFixed(2), bar.x + 10.5, base - h - 4);
-      ctx.font = '7px ui-monospace, SFMono-Regular, Consolas, monospace';
+      ctx.font = '9px ui-monospace, SFMono-Regular, Consolas, monospace';
       ctx.fillStyle = '#9db9ca';
       ctx.fillText(bar.label, bar.x + 10.5, 126);
     }
@@ -93,10 +93,10 @@
     ctx.fillStyle = '#071727';
     ctx.fillRect(10, 12, 140, 135);
     ctx.textAlign = 'left';
-    ctx.font = 'bold 8px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = 'bold 9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.fillStyle = '#b6e8ff';
     ctx.fillText('COPPER  /  NOTCH SUPPORT', 17, 26);
-    ctx.font = '7px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = '9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.fillStyle = '#85a8bc';
     ctx.fillText('MEASURED vs FITTED n', 17, 37);
     const x0 = 30, y0 = 124, size = 82, range = .6;
@@ -130,7 +130,7 @@
       ctx.beginPath(); ctx.arc(x(fitted), y(measured), 2.5, 0, Math.PI * 2); ctx.fill();
       ctx.globalAlpha = 1;
     });
-    ctx.font = '7px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = '9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.fillStyle = '#86a9bc';
     ctx.fillText('1.0', 16, 127);
     ctx.fillText('1.6', 16, 46);
@@ -150,7 +150,7 @@
     ctx.strokeStyle = '#7298ab';
     ctx.beginPath(); ctx.moveTo(18, 14); ctx.lineTo(18, 140); ctx.lineTo(150, 140); ctx.stroke();
     ctx.fillStyle = '#83a9bb';
-    ctx.font = '8px ui-monospace, SFMono-Regular, Consolas, monospace';
+    ctx.font = '9px ui-monospace, SFMono-Regular, Consolas, monospace';
     ctx.fillText('LOAD', 23, 13);
     ctx.fillText('TIME', 126, 152);
     ctx.save();
@@ -207,6 +207,10 @@
       frame = 0;
     }
   };
+  reduced.addEventListener('change', () => {
+    window.portfolioAnimations.pause();
+    if (document.querySelector('#project-space canvas.concept-animation')) window.portfolioAnimations.play();
+  });
   window.addEventListener('resize', () => {
     if (!frame) paint();
   });

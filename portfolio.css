@@ -132,6 +132,9 @@ header{border-bottom-color:#cbd6e1}
 .hero-map .preview-card{animation-fill-mode:backwards;transform:none}
 /* The translucent wash dims the connectors without a backdrop blur layer. */
 .hero-map .project-space.visible::before{-webkit-backdrop-filter:none;backdrop-filter:none}
+.hero-map .domain.live:hover,.hero-map .expanded .domain.live{transform:none}
+.hero-map .square video[src*="gripper-mechanism"]{object-fit:contain;background:#fafcf9}
+.media-error{inset:auto 5px 5px;min-height:0;padding:6px 8px;border-radius:4px;font-size:12px}
 dialog{background:#fff;border-color:#c6d3df;color:#172435;box-shadow:0 25px 80px #273b5430}
 dialog h2{color:#172435}
 dialog p{color:#526475}
