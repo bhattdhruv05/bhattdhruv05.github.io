@@ -67,3 +67,6 @@
 .projects-end a{color:#0969da}
 @media(max-width:900px){.project-detail{grid-template-columns:1fr}}
 @media(orientation:portrait){.project-media.dual-media{border-color:#cbd6e1}}
+.project-media{position:relative}
+.project-media video{max-height:none}
+.project-media[data-motion-visible="false"] *{animation-play-state:paused}

@@ -134,14 +134,21 @@
   }
 
   function draw(canvas, t) {
-    if (canvas.width !== 1200) { canvas.width = 1200; canvas.height = 1000; }
+    const density = Math.max(2, window.devicePixelRatio || 1);
+    const width = Math.round(canvas.clientWidth * density);
+    const height = Math.round(canvas.clientHeight * density);
+    if (!width || !height) return;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
     const ctx = canvas.getContext('2d');
-    ctx.setTransform(2, 0, 0, 2, 0, 0);
+    ctx.setTransform(width / W, 0, 0, height / H, 0, 0);
     (canvas.dataset.projectAnimation === 'copper' ? copper : fatigue)(ctx, t);
   }
   function tick(now) {
     frame = requestAnimationFrame(tick);
-    if (now - last < 33 || document.hidden) return;
+    if (document.hidden) return;
     last = now;
     for (const canvas of canvases) {
       const rect = canvas.getBoundingClientRect();
@@ -153,5 +160,11 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { cancelAnimationFrame(frame); frame = 0; }
     else if (!reduced.matches && !frame) { last = performance.now(); frame = requestAnimationFrame(tick); }
+  });
+  new ResizeObserver(() => canvases.forEach(canvas => draw(canvas, reduced.matches ? 3 : (performance.now() - start) / 1000))).observe(document.querySelector('.project-list'));
+  reduced.addEventListener('change', () => {
+    cancelAnimationFrame(frame); frame = 0;
+    canvases.forEach(canvas => draw(canvas, 3));
+    if (!reduced.matches && !document.hidden) frame = requestAnimationFrame(tick);
   });
 })();
