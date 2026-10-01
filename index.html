@@ -152,10 +152,10 @@ async function select(key){clearTimeout(leaveTimer);if(active===key){play();retu
 function openProject(id){pause();window.location.href='projects/#'+encodeURIComponent(id)}
 function scheduleHide(){clearTimeout(leaveTimer);leaveTimer=setTimeout(hide,220)}
 function keepVisible(){clearTimeout(leaveTimer)}
-fields.forEach(f=>{f.addEventListener('pointerenter',e=>{if(e.pointerType!=='touch'){keyboardNavigation=false;keepVisible();select(f.dataset.field)}});f.addEventListener('focus',()=>select(f.dataset.field));f.addEventListener('click',()=>select(f.dataset.field))});
+fields.forEach(f=>{f.addEventListener('pointermove',e=>{if(e.pointerType!=='touch'&&(e.movementX||e.movementY)){keyboardNavigation=false;keepVisible();if(active!==f.dataset.field)select(f.dataset.field)}});f.addEventListener('focus',()=>select(f.dataset.field));f.addEventListener('click',()=>select(f.dataset.field))});
 map.addEventListener('pointerenter',keepVisible);
 map.addEventListener('pointerleave',e=>{if(e.pointerType!=='touch')scheduleHide()});
-window.addEventListener('scroll',()=>{if(!active||dialog.open)return;const r=space.getBoundingClientRect();if(r.bottom<=0||r.top>=innerHeight)hide()},{passive:true});
+window.addEventListener('scroll',()=>{if(!active||dialog.open)return;const r=(space.querySelector('.square')||space).getBoundingClientRect();if(r.bottom<=0||r.top>=innerHeight)hide()},{passive:true});
 document.addEventListener('pointerdown',e=>{keyboardNavigation=false;if(!map.contains(e.target)&&!dialog.contains(e.target))hide()});
 map.addEventListener('focusout',()=>{setTimeout(()=>{if(!map.contains(document.activeElement)&&(!map.matches(':hover')||keyboardNavigation)&&!dialog.open)hide()},0)});document.getElementById('close').addEventListener('click',()=>dialog.close());dialog.addEventListener('close',play);dialog.addEventListener('click',e=>{if(e.target===dialog){const r=dialog.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)dialog.close()}});document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();else if(e.key==='Tab')keyboardNavigation=true});document.addEventListener('visibilitychange',()=>document.hidden?pause():play());window.addEventListener('pageshow',()=>{draw();play()});window.addEventListener('pagehide',pause);new ResizeObserver(draw).observe(map);
 })();
