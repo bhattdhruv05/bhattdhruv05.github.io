@@ -173,9 +173,16 @@
 
   function paint() {
     document.querySelectorAll('#project-space canvas.concept-animation').forEach(canvas => {
-      if (canvas.width !== 320) { canvas.width = 320; canvas.height = 320; }
+      const density = Math.max(2, window.devicePixelRatio || 1);
+      const width = Math.round(canvas.clientWidth * density);
+      const height = Math.round(canvas.clientHeight * density);
+      if (!width || !height) return;
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
       const ctx = canvas.getContext('2d');
-      ctx.setTransform(2, 0, 0, 2, 0, 0);
+      ctx.setTransform(width / 160, 0, 0, height / 160, 0, 0);
       ({binary, fatigue, analytics, copper}[canvas.dataset.animation] || fatigue)(ctx, elapsed);
     });
   }
@@ -200,4 +207,7 @@
       frame = 0;
     }
   };
+  window.addEventListener('resize', () => {
+    if (!frame) paint();
+  });
 })();

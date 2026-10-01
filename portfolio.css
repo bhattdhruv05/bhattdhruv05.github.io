@@ -127,6 +127,11 @@ header{border-bottom-color:#cbd6e1}
 .media-error{background:#f6f8faed;color:#273a4d}
 .content-section{border-top-color:#cbd6e1}
 .contact-link{color:#0969da}
+
+/* Release the pop animation's raster layer once the preview has settled. */
+.hero-map .preview-card{animation-fill-mode:backwards;transform:none}
+/* The translucent wash dims the connectors without a backdrop blur layer. */
+.hero-map .project-space.visible::before{-webkit-backdrop-filter:none;backdrop-filter:none}
 dialog{background:#fff;border-color:#c6d3df;color:#172435;box-shadow:0 25px 80px #273b5430}
 dialog h2{color:#172435}
 dialog p{color:#526475}
