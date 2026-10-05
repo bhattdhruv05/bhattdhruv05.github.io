@@ -140,3 +140,13 @@ dialog h2{color:#172435}
 dialog p{color:#526475}
 .close{background:#eaf2fb;color:#23374b}
 button:focus-visible,a:focus-visible{outline-color:#0969da}
+
+/* Entering a field responds immediately; selection stays visible over its previews. */
+.hero-map .domain.live{transition:background-color .1s ease-out,border-color .1s ease-out,box-shadow .1s ease-out}
+.hero-map .domain.live:hover,.hero-map .domain.live[aria-expanded="true"]{background:#e7f2ff;border-color:#2478c6;box-shadow:inset 0 0 0 1px #2478c6,0 5px 16px #164c8617;transform:none}
+.hero-map .domain.live[aria-expanded="true"] .symbol{background:#d4e8ff;color:#095fae}
+.hero-map .domain.live[aria-expanded="true"] strong{color:#095fae}
+.hero-map .preview-card{animation:mapPreviewIn .14s ease-out backwards;transform:none}
+.hero-map .preview-card:nth-child(2){animation-delay:0s}
+@keyframes mapPreviewIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.hero-map .preview-card{animation:none}.hero-map .domain.live{transition:none}}
