@@ -28,6 +28,6 @@
 @keyframes femFreeText{0%,33%{opacity:0}34%,52%{opacity:1}53%,100%{opacity:0}}
 @keyframes femCorrectText{0%,55%{opacity:0}56%,75%{opacity:1}76%,100%{opacity:0}}
 @keyframes femFinalText{0%,75%{opacity:0}76%,98%{opacity:1}99%,100%{opacity:0}}
-@media(prefers-reduced-motion:reduce){.scan-beam{animation:none;opacity:.6;top:51%}.prototype-visual img{animation:none}.fem-strip{animation:none;transform:rotate(-38deg)}.fem-phase{animation:none;opacity:0}.fem-phase.phase-final{opacity:1}}
+
 
 .project-space[data-motion-visible="false"] *{animation-play-state:paused}

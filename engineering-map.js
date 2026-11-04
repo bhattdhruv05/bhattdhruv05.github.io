@@ -8,10 +8,10 @@
   if (!map || !space || !window.portfolioMapData) return;
   const { entries, groups, scopes } = window.portfolioMapData;
   const fields = [...map.querySelectorAll('[data-field]')];
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const motion = window.portfolioMotion;
   const cards = new Map();
   let active = null, leaveTimer = 0, dismissTimer = 0, geometryFrame = 0;
-  let pointer = null, inView = true, keyboard = false, scrollFrame = 0;
+  let keyboard = false, pinned = false, scrollFrame = 0, lastScroll = -Infinity;
 
   function pause() {
     space.querySelectorAll('video').forEach(window.portfolioMedia.pause);
@@ -20,8 +20,13 @@
   }
 
   function play() {
-    if (!active || document.hidden || !inView || space.classList.contains('is-leaving')) return;
-    space.dataset.motionVisible = String(!reduced.matches);
+    if (!active || document.hidden || space.classList.contains('is-leaving')) return;
+    const visible = [...space.querySelectorAll('.square')].some(visual => {
+      const rect = visual.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
+    });
+    if (!visible) { pause(); return; }
+    space.dataset.motionVisible = 'true';
     window.portfolioAnimations.play();
     space.querySelectorAll('video').forEach(window.portfolioMedia.play);
   }
@@ -54,6 +59,7 @@
     pause();
     const finish = () => {
       active = null;
+      pinned = false;
       space.replaceChildren();
       space.classList.remove('visible', 'is-leaving');
       map.classList.remove('has-selection');
@@ -61,7 +67,7 @@
       status.textContent = '';
       scheduleDraw();
     };
-    if (immediate || reduced.matches) finish();
+    if (immediate || !motion.enabled) finish();
     else {
       space.classList.add('is-leaving');
       dismissTimer = setTimeout(finish, 150);
@@ -151,26 +157,25 @@
 
   fields.forEach(field => {
     field.addEventListener('pointerenter', event => {
-      if (event.pointerType === 'mouse' && (event.movementX || event.movementY)) {
+      // pointerenter commonly reports zero movement, including on real mice.
+      if (event.pointerType !== 'touch' && performance.now() - lastScroll > 140) {
         keyboard = false;
+        if (active !== field.dataset.field) pinned = false;
         select(field.dataset.field);
       }
     });
     field.addEventListener('pointermove', event => {
-      // A stationary cursor must not select fields that move beneath it on scroll.
-      if (event.pointerType === 'mouse' && (!pointer || pointer.x !== event.clientX || pointer.y !== event.clientY)) {
-        keyboard = false;
-        if (active !== field.dataset.field || space.classList.contains('is-leaving')) select(field.dataset.field);
-        else keepVisible();
-      }
+      if (event.pointerType === 'touch') return;
+      keyboard = false;
+      if (active !== field.dataset.field || space.classList.contains('is-leaving')) { pinned = false; select(field.dataset.field); }
+      else keepVisible();
     });
-    field.addEventListener('focus', () => { if (keyboard) select(field.dataset.field); });
-    field.addEventListener('click', () => select(field.dataset.field));
+    field.addEventListener('focus', () => { if (keyboard) { pinned = true; select(field.dataset.field); } });
+    field.addEventListener('click', () => { pinned = true; select(field.dataset.field); });
   });
-  document.addEventListener('pointermove', event => { pointer = { x: event.clientX, y: event.clientY }; }, { passive: true });
   map.addEventListener('pointerenter', () => { keepVisible(); play(); });
   map.addEventListener('pointerleave', event => {
-    if (event.pointerType !== 'mouse' || map.contains(document.activeElement) && keyboard) return;
+    if (event.pointerType !== 'mouse' || pinned || map.contains(document.activeElement) && keyboard) return;
     leaveTimer = setTimeout(() => hide(), 220);
   });
   map.addEventListener('focusout', () => {
@@ -178,6 +183,7 @@
   });
   document.addEventListener('pointerdown', event => {
     keyboard = false;
+    if (event.target.closest('[data-motion-toggle]')) { keepVisible(); return; }
     if (!map.contains(event.target)) hide();
   });
   document.addEventListener('keydown', event => {
@@ -188,29 +194,23 @@
       hide(true);
     }
   });
-  if ('IntersectionObserver' in window) {
-    new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) hide(true);
-    }).observe(map);
-    new IntersectionObserver(([entry]) => {
-      inView = entry.isIntersecting;
-      if (inView) play();
-      else pause();
-    }).observe(space);
-  }
   // One check per animation frame; no repeated layout reads on every scroll event.
   window.addEventListener('scroll', () => {
+    lastScroll = performance.now();
     if (!active || scrollFrame) return;
     scrollFrame = requestAnimationFrame(() => {
       scrollFrame = 0;
       const rect = map.getBoundingClientRect();
       if (rect.bottom <= 0 || rect.top >= innerHeight) hide(true);
+      else play();
     });
   }, { passive: true });
-  document.addEventListener('visibilitychange', () => document.hidden ? pause() : play());
+  motion.subscribe(() => {
+    if (motion.running) play();
+    else { pause(); if (!motion.enabled && active) window.portfolioAnimations.play(); }
+  });
   window.addEventListener('pageshow', () => { scheduleDraw(); play(); });
   window.addEventListener('pagehide', pause);
-  reduced.addEventListener('change', () => { pause(); play(); });
   new ResizeObserver(scheduleDraw).observe(map);
   if (document.fonts) document.fonts.ready.then(scheduleDraw);
 })();

@@ -1,7 +1,7 @@
 (() => {
   const canvases = [...document.querySelectorAll('.project-media canvas.project-animation')];
   if (!canvases.length) return;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const motion = window.portfolioMotion;
   const W = 600, H = 500;
   let frame = 0, elapsed = 0, last = 0;
   const visible = new Set();
@@ -54,6 +54,12 @@
     const reveal = Math.max(0, Math.min(1, (phase - .3) / 1.4));
     const smooth = reveal * reveal * (3 - 2 * reveal);
     ctx.beginPath(); ctx.moveTo(px(1), py(1)); ctx.lineTo(px(1 + .6 * smooth), py(1 + .6 * smooth)); ctx.stroke();
+    ctx.save();
+    ctx.strokeStyle = '#bcefff';
+    ctx.setLineDash([12, 24]);
+    ctx.lineDashOffset = -t * 30;
+    ctx.beginPath(); ctx.moveTo(px(1), py(1)); ctx.lineTo(px(1 + .6 * smooth), py(1 + .6 * smooth)); ctx.stroke();
+    ctx.restore();
     const specimens = [
       [300, 3.13, 1.474, 'A'],
       [375, .67, 1.210, 'B'],
@@ -155,7 +161,7 @@
     (canvas.dataset.projectAnimation === 'copper' ? copper : fatigue)(ctx, t);
   }
   function tick(now) {
-    elapsed += Math.min((now - last) / 1000, .05);
+    elapsed += Math.max(0, (now - last) / 1000);
     last = now;
     visible.forEach(canvas => draw(canvas, elapsed));
     frame = requestAnimationFrame(tick);
@@ -163,13 +169,12 @@
   function sync() {
     cancelAnimationFrame(frame);
     frame = 0;
-    if (document.hidden || !visible.size) return;
-    if (reduced.matches) { visible.forEach(canvas => draw(canvas, 3)); return; }
+    if (!motion.running || !visible.size) return;
     last = performance.now();
     frame = requestAnimationFrame(tick);
   }
   const resize = new ResizeObserver(entries => {
-    entries.forEach(entry => { measure(entry.target); draw(entry.target, reduced.matches ? 3 : elapsed); });
+    entries.forEach(entry => { measure(entry.target); draw(entry.target, !motion.enabled ? 3 : elapsed); });
   });
   canvases.forEach(canvas => { measure(canvas); draw(canvas, 3); resize.observe(canvas); });
   if ('IntersectionObserver' in window) {
@@ -179,8 +184,7 @@
     });
     canvases.forEach(canvas => observer.observe(canvas));
   } else { canvases.forEach(canvas => visible.add(canvas)); sync(); }
-  document.addEventListener('visibilitychange', sync);
+  motion.subscribe(sync);
   window.addEventListener('pagehide', () => { cancelAnimationFrame(frame); frame = 0; });
   window.addEventListener('pageshow', sync);
-  reduced.addEventListener('change', sync);
 })();

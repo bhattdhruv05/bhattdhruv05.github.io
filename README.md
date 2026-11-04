@@ -23,3 +23,8 @@ The homepage is `index.html`; project case studies are in `projects/index.html`.
 `engineering-map.js` owns field selection and dismissal. `map-data.js` holds the existing project content. `media-playback.js` handles visibility and interruption recovery; map and case-study canvas scripts draw only when needed. Shared layout is in `portfolio.css`, with reusable animated illustrations in `visuals.css`.
 
 Run `node --test tests/media-playback.test.cjs` for playback regressions. While serving locally, open `tests/map-browser.html` for pointer, dismissal-race, layout and keyboard checks. See `AUDIT.md` for findings, verification and browser coverage limits.
+
+
+The motion control in the header pauses/resumes all preview types. Interactive previews start by default; reduced-motion styling removes entrance transitions without silently disabling the project demonstrations. Full project videos retain their original resolution. Map-only videos are encoded separately at 480px with MP4 fast-start metadata. Fonts are self-hosted under `assets/fonts` with their OFL licenses.
+
+Additional browser checks: `tests/playback-browser.html` compares video timestamps, canvas pixels and CSS transforms; `tests/reduced-motion-browser.html` checks the explicit motion controls with a simulated reduced-motion environment.

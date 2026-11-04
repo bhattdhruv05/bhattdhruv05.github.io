@@ -40,3 +40,21 @@ node --check media-playback.js
 node --check projects/project-animations.js
 python3 -m http.server 8000
 ```
+
+
+## Playback rebuild — 4 November 2026
+
+A user recording showed that card-selection checks were insufficient to establish animation playback. This follow-up separates the visible appearance of a preview from proof that its frames advance.
+
+- Removed the common reduced-motion playback veto from interactive previews. They now start when selected unless a visitor explicitly pauses them. Reduced-motion styling still removes decorative entrance transitions.
+- Added a single shared Play/Pause preference for video, CSS and canvas renderers, with an in-memory fallback when storage is unavailable.
+- Added an accessible Play preview button for actual autoplay rejection; no rejected-play retry loop.
+- Removed mouse-movement-delta requirements from pointer entry. Scroll-related entry is guarded by a short scroll window, while physical pointer movement, click and keyboard focus select immediately.
+- Click and keyboard selection remain pinned while the visitor reaches the motion control. Outside click and Escape still dismiss previews.
+- Removed competing startup IntersectionObservers from the map; visibility checks use the actual visual rectangles. Offscreen playback and page restoration share the same lifecycle.
+- Render clocks use elapsed time rather than losing animation time whenever frames are throttled. Model-fit line highlights remain visibly animated between reveals without altering the reported data.
+- Created four map-only 480px H.264 previews with fast-start metadata: robot 295,225 bytes, CAM 284,641, mechanism 335,054 and assembly 169,336. Their source files totalled 4,907,421 bytes; preview files total 1,084,256 bytes (78% reduction). Full case-study videos are unchanged.
+- Removed external Google Fonts stylesheets from both pages. Fonts are self-hosted WOFF subsets with font-display swap and included licenses. Deferred scripts download in parallel while preserving execution order.
+- Case-study video/poster URLs are assigned only near the viewport; noncritical images use lazy decoding. Navigation-intent prefetch warms the other document without delaying clicks.
+
+Validation includes actual video timestamps, canvas pixel changes, CSS transform changes, explicit Pause/Play, autoplay-rejection recovery, default playback with reduced-motion settings, and the full project-page media. Automated media lifecycle tests: 8 passed. Physical-device and non-Chromium testing remain unavailable; no universal frame-rate or load-time guarantee is claimed.

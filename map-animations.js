@@ -1,7 +1,7 @@
 (() => {
   let frame = 0, elapsed = 0, last = 0;
   const W = 160, H = 160;
-  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const motion = window.portfolioMotion;
 
   function background(ctx) {
     const fill = ctx.createLinearGradient(0, 0, W, H);
@@ -114,6 +114,14 @@
     ctx.strokeStyle = '#50c5ed';
     ctx.lineWidth = 1.4;
     ctx.beginPath(); ctx.moveTo(x(1), y(1)); ctx.lineTo(x(1 + range * progress), y(1 + range * progress)); ctx.stroke();
+    // A moving highlight keeps the fitted reference visibly alive between reveals.
+    ctx.save();
+    ctx.strokeStyle = '#c4f3ff';
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([5, 13]);
+    ctx.lineDashOffset = -t * 16;
+    ctx.beginPath(); ctx.moveTo(x(1), y(1)); ctx.lineTo(x(1 + range * progress), y(1 + range * progress)); ctx.stroke();
+    ctx.restore();
     const specimens = [
       [300, 3.13, 1.474], [375, .67, 1.210],
       [550, 4.28, 1.298], [675, .69, 1.061]
@@ -199,22 +207,23 @@
     paint();
   });
   function tick(now) {
-    elapsed += Math.min((now - last) / 1000, .05);
+    elapsed += Math.max(0, (now - last) / 1000);
     last = now;
     paint();
     frame = requestAnimationFrame(tick);
   }
   window.portfolioAnimations = {
     play() {
-      if (document.hidden) return;
+      if (!motion.running && motion.enabled) return;
       const mounted = [...document.querySelectorAll('#project-space canvas.concept-animation')];
       if (!mounted.length) return;
       if (mounted.length !== canvases.length || mounted.some((canvas, i) => canvas !== canvases[i])) {
         resize.disconnect();
         canvases = mounted;
+        elapsed = 0;
         canvases.forEach(canvas => { measure(canvas); resize.observe(canvas); });
       }
-      if (reduced.matches) { elapsed = 3; paint(); return; }
+      if (!motion.enabled) { elapsed = 3; paint(); return; }
       if (frame) return;
       last = performance.now();
       paint();

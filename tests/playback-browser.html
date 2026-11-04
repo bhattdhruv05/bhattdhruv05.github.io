@@ -1,0 +1,64 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Actual portfolio playback checks</title>
+<style>body{font:14px system-ui;margin:20px}button{padding:10px}iframe{display:block;width:100%;height:850px;border:1px solid #ccc}pre{white-space:pre-wrap}pre#results{position:fixed;top:5px;right:5px;width:310px;max-height:260px;overflow:auto;background:#fff;z-index:10;border:1px solid #aaa;padding:8px;font-size:11px}</style>
+<button id="run" disabled>Test actual animation playback</button><pre id="results" role="status">Ready</pre>
+<iframe id="site" src="../" title="Portfolio under test" allow="autoplay"></iframe>
+<script>
+const frame=document.querySelector('#site'),output=document.querySelector('#results');
+frame.addEventListener('load',()=>document.querySelector('#run').disabled=false);
+const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+async function until(test,timeout=9000){const end=performance.now()+timeout;while(!test()&&performance.now()<end)await wait(100);return test();}
+function pixels(canvas){let hash=0;const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;for(let i=0;i<d.length;i+=4){hash=Math.imul(hash^d[i],16777619)>>>0;hash=Math.imul(hash^d[i+1],16777619)>>>0;}return hash;}
+document.querySelector('#run').onclick=async()=>{
+ const doc=frame.contentDocument,win=frame.contentWindow,results=[];
+ const check=(name,pass,detail)=>{results.push({name,pass:!!pass,...(detail?{detail}: {})});output.textContent=JSON.stringify(results,null,2);};
+ try{
+  doc.querySelector('#explorer').scrollIntoView();await wait(200);
+  win.portfolioMotion.setEnabled(true);
+  const select=key=>doc.querySelector(`[data-field="${key}"]`).click();
+  for(const field of ['mechanical','robotics']){
+   select(field);const videos=[...doc.querySelectorAll('#project-space video')];
+   await until(()=>videos.every(v=>v.readyState>=2&&!v.paused));
+   const before=videos.map(v=>v.currentTime);await wait(900);
+   videos.forEach((v,i)=>check(field+': video '+(i+1)+' advances',!v.paused&&v.currentTime!==before[i],{before:before[i],after:v.currentTime,source:v.getAttribute('src')}));
+  }
+  select('coding');await wait(400);
+  const css=[...doc.querySelectorAll('#project-space .fem-strip,#project-space .scan-beam')];
+  const style=e=>{const s=win.getComputedStyle(e);return [s.transform,s.top,s.opacity].join('|');};
+  const before=css.map(style);await wait(1500);
+  css.forEach((e,i)=>check('CSS '+e.classList[0]+' changes visually',before[i]!==style(e)));
+  select('data');await wait(500);
+  const canvases=[...doc.querySelectorAll('#project-space canvas')],images=canvases.map(pixels);await wait(1400);
+  canvases.forEach((c,i)=>check('Canvas '+c.dataset.animation+' changes pixels',images[i]!==pixels(c)));
+  select('electronics');await wait(400);
+  const signal=doc.querySelector('#project-space canvas'),initial=pixels(signal);await wait(700);
+  check('Fatigue canvas changes pixels',initial!==pixels(signal));
+  win.portfolioMotion.setEnabled(false);const frozen=pixels(signal);await wait(400);
+  check('Pause freezes the graph',pixels(signal)===frozen);
+  doc.querySelector('[data-motion-toggle]').click();await wait(700);
+  check('Visible Play control restarts the graph',win.portfolioMotion.running&&pixels(signal)!==frozen);
+  select('robotics');const video=doc.querySelector('#project-space video');await until(()=>!video.paused&&video.readyState>=2);
+  const nativePlay=video.play.bind(video);win.portfolioMotion.setEnabled(false);
+  video.play=()=>Promise.reject(new win.DOMException('Simulated autoplay rejection','NotAllowedError'));
+  win.portfolioMotion.setEnabled(true);await wait(100);
+  const retry=video.parentElement.querySelector('.media-retry');check('Autoplay rejection exposes a real Play button',retry&&!retry.parentElement.hidden);
+  video.play=nativePlay;retry.click();await until(()=>!video.paused&&video.readyState>=2);
+  const time=video.currentTime;await wait(700);check('Play retry starts actual video playback',video.currentTime!==time&&!video.paused);
+  doc.querySelector('#contact').scrollIntoView({behavior:'instant'});await until(()=>video.paused,2500);check('Offscreen video pauses',video.paused,{visual:video.getBoundingClientRect().toJSON(),viewport:win.innerHeight});
+  await new Promise(resolve=>{frame.onload=resolve;frame.src='../projects/';});
+  const projectDoc=frame.contentDocument,projectWin=frame.contentWindow;
+  projectWin.portfolioMotion.setEnabled(true);
+  for(const id of ['gripper','assembly','cam']){
+    projectDoc.querySelector('#'+id).scrollIntoView({behavior:'instant'});
+    const clips=[...projectDoc.querySelectorAll('#'+id+' video')];
+    await until(()=>clips.every(v=>v.readyState>=2&&!v.paused));
+    const start=clips.map(v=>v.currentTime);await wait(700);
+    clips.forEach((v,i)=>check('Project '+id+' video '+(i+1)+' advances',!v.paused&&v.currentTime!==start[i]));
+  }
+  projectDoc.querySelector('#iep').scrollIntoView({behavior:'instant'});await wait(400);
+  const projectSignal=projectDoc.querySelector('#iep canvas'),projectPixels=pixels(projectSignal);await wait(700);
+  check('Project fatigue graph changes pixels',pixels(projectSignal)!==projectPixels);
+
+ }catch(error){check('Test execution',false,error.message);}
+ output.textContent=`${results.filter(r=>r.pass).length}/${results.length} passed\n`+JSON.stringify(results,null,2);
+};
+</script></html>

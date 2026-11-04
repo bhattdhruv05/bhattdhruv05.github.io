@@ -1,5 +1,5 @@
 <!doctype html><html lang="en"><meta charset="utf-8"><title>Engineering map regression checks</title>
-<style>body{font:16px system-ui;margin:20px}button{padding:12px}iframe{display:block;width:100%;height:850px;border:1px solid #ccc}pre{white-space:pre-wrap}</style>
+<style>body{font:16px system-ui;margin:20px}button{padding:12px}iframe{display:block;width:100%;height:850px;border:1px solid #ccc}pre{white-space:pre-wrap}pre#results{position:fixed;top:5px;right:5px;width:310px;max-height:260px;overflow:auto;background:#fff;z-index:10;border:1px solid #aaa;padding:8px;font-size:11px}</style>
 <button id="run" disabled>Run map regression checks</button><pre id="results" role="status">Ready</pre>
 <iframe id="site" src="../" title="Portfolio under test"></iframe>
 <script>
@@ -17,8 +17,8 @@ document.querySelector('#run').onclick = async () => {
   const pointer = (element, type, x = 100, movementX = 1) => element.dispatchEvent(new win.PointerEvent(type, { bubbles: true, pointerType: 'mouse', clientX: x, clientY: 200, movementX }));
   // Move the iframe's map into view before exercising visibility-aware behavior.
   map.scrollIntoView();
-  await wait(100);
-  pointer(field('robotics'), 'pointerenter');
+  await wait(180);
+  pointer(field('robotics'), 'pointerenter', 100, 0);
   check('Mouse entry selects a field without a click', selected() === 'robotics' && space.children.length === 2);
   const originalVideo = space.querySelector('video');
   pointer(field('coding'), 'pointermove', 200);
@@ -29,6 +29,8 @@ document.querySelector('#run').onclick = async () => {
     field(key).click();
     check(key + ': exactly two cards, one active field, stable map height', selected() === key && space.children.length === 2 && doc.querySelectorAll('[aria-expanded="true"]').length === 1 && Math.abs(map.getBoundingClientRect().height - height) < 1);
   }
+  pointer(field('coding'), 'pointermove', 400);
+  pointer(field('systems'), 'pointermove', 450);
   pointer(map, 'pointerleave');
   await wait(270);
   pointer(field('systems'), 'pointerenter');
@@ -44,7 +46,11 @@ document.querySelector('#run').onclick = async () => {
   check('Escape clears the selection immediately', !selected() && !space.children.length);
   // A scroll-related enter event with no physical pointer movement stays idle.
   pointer(field('robotics'), 'pointerenter', 300, 0);
-  check('Stationary pointer entry does not select a field', !selected());
+  check('Zero-delta mouse entry reliably selects a field', selected() === 'robotics');
+  doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  win.dispatchEvent(new win.Event('scroll'));
+  pointer(field('robotics'), 'pointerenter', 300, 0);
+  check('A scroll-generated entry does not reopen a field', !selected());
   const passed = results.filter(r => r.pass).length;
   output.textContent = `${passed}/${results.length} passed\n` + JSON.stringify(results, null, 2);
 };
