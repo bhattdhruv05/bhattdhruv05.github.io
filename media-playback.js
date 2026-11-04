@@ -7,7 +7,15 @@
   function note(video, message) {
     const element = video.parentElement?.querySelector('.media-error');
     if (!element) return;
-    if (message) element.textContent = message;
+    if (message) {
+      const retry = document.createElement('button');
+      retry.type = 'button';
+      retry.className = 'media-retry';
+      retry.textContent = 'Play preview';
+      retry.setAttribute('aria-label', 'Play ' + (video.getAttribute('aria-label') || 'project preview'));
+      retry.addEventListener('click', event => { event.stopPropagation(); play(video); });
+      element.replaceChildren(retry);
+    }
     element.hidden = !message;
   }
 
@@ -20,6 +28,10 @@
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
     video.addEventListener('playing', () => note(video));
+    video.addEventListener('error', () => {
+      const element = video.parentElement?.querySelector('.media-error');
+      if (element) { element.textContent = 'Preview unavailable. Project details remain available.'; element.hidden = false; }
+    });
     for (const event of ['loadeddata', 'canplay']) {
       video.addEventListener(event, () => attempt(video, state));
     }
@@ -60,7 +72,7 @@
     const state = register(video);
     state.wanted = false;
     state.generation++;
-    video.pause();
+    if (!video.paused) video.pause();
   }
   window.portfolioMedia = { play, pause };
 
@@ -72,7 +84,7 @@
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => setVisible(entry.target, entry.isIntersecting));
-    }, { threshold: 0, rootMargin: '40px 0px' });
+    }, { threshold: 0, rootMargin: '120px 0px' });
     media.forEach(root => {
       setVisible(root, false);
       observer.observe(root);

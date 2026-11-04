@@ -17,3 +17,9 @@ Open `http://localhost:8000`.
 Publish the `main` branch from the repository root (`/`). The `.nojekyll` file allows GitHub Pages to serve the static site directly.
 
 The homepage is `index.html`; project case studies are in `projects/index.html`. Media and scripts use relative paths so the site works under a GitHub Pages repository URL.
+
+## Interaction architecture and checks
+
+`engineering-map.js` owns field selection and dismissal. `map-data.js` holds the existing project content. `media-playback.js` handles visibility and interruption recovery; map and case-study canvas scripts draw only when needed. Shared layout is in `portfolio.css`, with reusable animated illustrations in `visuals.css`.
+
+Run `node --test tests/media-playback.test.cjs` for playback regressions. While serving locally, open `tests/map-browser.html` for pointer, dismissal-race, layout and keyboard checks. See `AUDIT.md` for findings, verification and browser coverage limits.

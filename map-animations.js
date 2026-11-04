@@ -171,47 +171,60 @@
     ctx.restore();
   }
 
-  function paint() {
-    document.querySelectorAll('#project-space canvas.concept-animation').forEach(canvas => {
-      const density = Math.max(2, window.devicePixelRatio || 1);
-      const width = Math.round(canvas.clientWidth * density);
-      const height = Math.round(canvas.clientHeight * density);
-      if (!width || !height) return;
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-      const ctx = canvas.getContext('2d');
-      ctx.setTransform(width / 160, 0, 0, height / 160, 0, 0);
-      ({binary, fatigue, analytics, copper}[canvas.dataset.animation] || fatigue)(ctx, elapsed);
-    });
+  let canvases = [];
+  const sizes = new WeakMap();
+  function measure(canvas) {
+    const density = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    const width = Math.round(canvas.clientWidth * density);
+    const height = Math.round(canvas.clientHeight * density);
+    if (!width || !height) return;
+    if (canvas.width !== width || canvas.height !== height) {
+      canvas.width = width;
+      canvas.height = height;
+    }
+    sizes.set(canvas, { width, height });
   }
-
+  function paint() {
+    for (const canvas of canvases) {
+      const size = sizes.get(canvas);
+      if (!size || !canvas.isConnected) continue;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) continue;
+      ctx.setTransform(size.width / W, 0, 0, size.height / H, 0, 0);
+      ({ binary, fatigue, analytics, copper }[canvas.dataset.animation] || fatigue)(ctx, elapsed);
+    }
+  }
+  const resize = new ResizeObserver(entries => {
+    entries.forEach(entry => measure(entry.target));
+    paint();
+  });
   function tick(now) {
     elapsed += Math.min((now - last) / 1000, .05);
     last = now;
     paint();
     frame = requestAnimationFrame(tick);
   }
-
   window.portfolioAnimations = {
     play() {
-      if (!document.querySelector('#project-space canvas.concept-animation')) return;
+      if (document.hidden) return;
+      const mounted = [...document.querySelectorAll('#project-space canvas.concept-animation')];
+      if (!mounted.length) return;
+      if (mounted.length !== canvases.length || mounted.some((canvas, i) => canvas !== canvases[i])) {
+        resize.disconnect();
+        canvases = mounted;
+        canvases.forEach(canvas => { measure(canvas); resize.observe(canvas); });
+      }
       if (reduced.matches) { elapsed = 3; paint(); return; }
       if (frame) return;
       last = performance.now();
+      paint();
       frame = requestAnimationFrame(tick);
     },
     pause() {
       cancelAnimationFrame(frame);
       frame = 0;
+      resize.disconnect();
+      canvases = [];
     }
   };
-  reduced.addEventListener('change', () => {
-    window.portfolioAnimations.pause();
-    if (document.querySelector('#project-space canvas.concept-animation')) window.portfolioAnimations.play();
-  });
-  window.addEventListener('resize', () => {
-    if (!frame) paint();
-  });
 })();

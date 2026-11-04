@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Engineering map regression checks</title>
+<style>body{font:16px system-ui;margin:20px}button{padding:12px}iframe{display:block;width:100%;height:850px;border:1px solid #ccc}pre{white-space:pre-wrap}</style>
+<button id="run" disabled>Run map regression checks</button><pre id="results" role="status">Ready</pre>
+<iframe id="site" src="../" title="Portfolio under test"></iframe>
+<script>
+const frame = document.querySelector('#site');
+const output = document.querySelector('#results');
+frame.addEventListener('load', () => { document.querySelector('#run').disabled = false; });
+const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+document.querySelector('#run').onclick = async () => {
+  const doc = frame.contentDocument, win = frame.contentWindow;
+  const space = doc.querySelector('#project-space'), map = doc.querySelector('#explorer');
+  const field = key => doc.querySelector(`[data-field="${key}"]`);
+  const selected = () => doc.querySelector('[aria-expanded="true"]')?.dataset.field;
+  const results = [];
+  const check = (name, condition) => { results.push({ name, pass: !!condition }); output.textContent = JSON.stringify(results, null, 2); };
+  const pointer = (element, type, x = 100, movementX = 1) => element.dispatchEvent(new win.PointerEvent(type, { bubbles: true, pointerType: 'mouse', clientX: x, clientY: 200, movementX }));
+  // Move the iframe's map into view before exercising visibility-aware behavior.
+  map.scrollIntoView();
+  await wait(100);
+  pointer(field('robotics'), 'pointerenter');
+  check('Mouse entry selects a field without a click', selected() === 'robotics' && space.children.length === 2);
+  const originalVideo = space.querySelector('video');
+  pointer(field('coding'), 'pointermove', 200);
+  pointer(field('robotics'), 'pointermove', 300);
+  check('Returning to a field reuses the existing video node', space.querySelector('video') === originalVideo);
+  const height = map.getBoundingClientRect().height;
+  for (const key of ['mechanical','robotics','coding','data','electronics','systems']) {
+    field(key).click();
+    check(key + ': exactly two cards, one active field, stable map height', selected() === key && space.children.length === 2 && doc.querySelectorAll('[aria-expanded="true"]').length === 1 && Math.abs(map.getBoundingClientRect().height - height) < 1);
+  }
+  pointer(map, 'pointerleave');
+  await wait(270);
+  pointer(field('systems'), 'pointerenter');
+  await wait(180);
+  check('Re-entry cancels a pending dismissal for the same field', selected() === 'systems' && space.children.length === 2 && !space.classList.contains('is-leaving'));
+  pointer(map, 'pointerleave');
+  await wait(450);
+  check('Leaving the map dismisses previews', !selected() && !space.children.length);
+  doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Tab', bubbles: true }));
+  field('data').focus();
+  check('Keyboard focus selects the field', selected() === 'data');
+  doc.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  check('Escape clears the selection immediately', !selected() && !space.children.length);
+  // A scroll-related enter event with no physical pointer movement stays idle.
+  pointer(field('robotics'), 'pointerenter', 300, 0);
+  check('Stationary pointer entry does not select a field', !selected());
+  const passed = results.filter(r => r.pass).length;
+  output.textContent = `${passed}/${results.length} passed\n` + JSON.stringify(results, null, 2);
+};
+</script></html>

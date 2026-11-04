@@ -1,0 +1,33 @@
+.square canvas.concept-animation{display:block;width:100%;height:100%}
+.scan-visual{position:relative;overflow:hidden;background:#202b38!important}
+.scan-frame{position:absolute;inset:0;display:block;overflow:hidden}
+.scan-frame img{display:block;width:100%;height:100%;object-fit:cover}
+.scan-beam{position:absolute;left:22%;right:21%;top:38%;height:2px;opacity:0;background:#4ddcff;box-shadow:0 0 6px 3px #24bdeb,0 10px 23px 8px #24bdeb44;animation:terminalScan 3.8s ease-in-out infinite}
+.prototype-visual{background:#707070!important;overflow:hidden}
+.prototype-visual img{display:block;width:100%;height:100%;object-fit:cover;animation:prototypeDrift 7s ease-in-out infinite alternate}
+@keyframes terminalScan{0%,8%{top:38%;opacity:0}14%{opacity:1}78%{top:64%;opacity:1}85%,100%{top:67%;opacity:0}}
+@keyframes prototypeDrift{from{transform:scale(1)}to{transform:scale(1.055)}}
+.fem-visual{display:grid;place-items:center;position:relative;overflow:hidden;background:linear-gradient(150deg,#071624,#122c43)!important}
+.fem-visual svg{display:block;width:100%;height:100%;max-width:520px}
+.fem-grid{fill:none;stroke:#50738a;stroke-width:.55;opacity:.36}
+.fem-reference{fill:none;stroke:#6b8ba2;stroke-width:1;stroke-dasharray:3 4}
+.fem-target{fill:none;stroke:#83cae8;stroke-width:1.3;stroke-dasharray:4 3;opacity:.8}
+.fem-angle{fill:none;stroke:#bddbf0;stroke-width:1}
+.fem-label,.fem-phase{fill:#d5eafa;font:600 9px ui-monospace,Consolas,monospace}
+.fem-clamp{fill:#546b7d;stroke:#b3cfe0;stroke-width:1}
+.fem-base,.fem-strip{fill:none;stroke:#edc889;stroke-width:4;stroke-linecap:round}
+.fem-hinge{fill:#f2d8a5}
+.fem-strip{transform-box:view-box;transform-origin:78px 95px;animation:femBend 8s ease-in-out infinite}
+.fem-phase{font-size:9px;letter-spacing:.03em;opacity:0}
+.phase-load{animation:femLoadText 8s linear infinite}
+.phase-free{animation:femFreeText 8s linear infinite}
+.phase-correct{animation:femCorrectText 8s linear infinite}
+.phase-final{animation:femFinalText 8s linear infinite}
+@keyframes femBend{0%,6%{transform:rotate(0)}24%,29%{transform:rotate(-38deg)}39%,48%{transform:rotate(-31deg)}64%,69%{transform:rotate(-45deg)}80%,94%{transform:rotate(-38deg)}100%{transform:rotate(0)}}
+@keyframes femLoadText{0%,9%{opacity:0}10%,33%{opacity:1}34%,100%{opacity:0}}
+@keyframes femFreeText{0%,33%{opacity:0}34%,52%{opacity:1}53%,100%{opacity:0}}
+@keyframes femCorrectText{0%,55%{opacity:0}56%,75%{opacity:1}76%,100%{opacity:0}}
+@keyframes femFinalText{0%,75%{opacity:0}76%,98%{opacity:1}99%,100%{opacity:0}}
+@media(prefers-reduced-motion:reduce){.scan-beam{animation:none;opacity:.6;top:51%}.prototype-visual img{animation:none}.fem-strip{animation:none;transform:rotate(-38deg)}.fem-phase{animation:none;opacity:0}.fem-phase.phase-final{opacity:1}}
+
+.project-space[data-motion-visible="false"] *{animation-play-state:paused}
