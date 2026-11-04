@@ -58,3 +58,11 @@ A user recording showed that card-selection checks were insufficient to establis
 - Case-study video/poster URLs are assigned only near the viewport; noncritical images use lazy decoding. Navigation-intent prefetch warms the other document without delaying clicks.
 
 Validation includes actual video timestamps, canvas pixel changes, CSS transform changes, explicit Pause/Play, autoplay-rejection recovery, default playback with reduced-motion settings, and the full project-page media. Automated media lifecycle tests: 8 passed. Physical-device and non-Chromium testing remain unavailable; no universal frame-rate or load-time guarantee is claimed.
+
+
+## Autoplay follow-up — 4 November 2026
+
+- Removed the global animation control from both page headers and removed the persisted Pause preference. Selected previews autoplay on every visit, including visitors with an old saved Pause setting.
+- Preserved canvas state through brief map exits and page visibility changes so resumed graphs do not jump back to the beginning.
+- Recover once from a browser AbortError without a selection change; repeated aborts expose the existing per-video retry instead of retrying in a loop.
+- Added regressions for obsolete saved preferences, isolated/repeated aborts, and canvas continuity.

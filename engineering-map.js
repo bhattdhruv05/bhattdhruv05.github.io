@@ -183,7 +183,6 @@
   });
   document.addEventListener('pointerdown', event => {
     keyboard = false;
-    if (event.target.closest('[data-motion-toggle]')) { keepVisible(); return; }
     if (!map.contains(event.target)) hide();
   });
   document.addEventListener('keydown', event => {

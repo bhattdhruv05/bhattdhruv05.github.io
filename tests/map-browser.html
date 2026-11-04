@@ -16,8 +16,9 @@ document.querySelector('#run').onclick = async () => {
   const check = (name, condition) => { results.push({ name, pass: !!condition }); output.textContent = JSON.stringify(results, null, 2); };
   const pointer = (element, type, x = 100, movementX = 1) => element.dispatchEvent(new win.PointerEvent(type, { bubbles: true, pointerType: 'mouse', clientX: x, clientY: 200, movementX }));
   // Move the iframe's map into view before exercising visibility-aware behavior.
-  map.scrollIntoView();
-  await wait(180);
+  await doc.fonts.ready;
+  map.scrollIntoView({behavior:'instant'});
+  await wait(350);
   pointer(field('robotics'), 'pointerenter', 100, 0);
   check('Mouse entry selects a field without a click', selected() === 'robotics' && space.children.length === 2);
   const originalVideo = space.querySelector('video');

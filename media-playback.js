@@ -1,21 +1,15 @@
-/* Shared motion preference and video lifecycle for both portfolio pages. */
+/* Automatic, visibility-aware playback for both portfolio pages. */
 (() => {
   'use strict';
   const subscribers = new Set();
-  let preference = null;
   let pageVisible = !document.hidden;
-  try { preference = localStorage.getItem('portfolio-motion'); } catch (_) { /* Storage is optional. */ }
-  // These are user-selected engineering previews, not ambient page motion.
-  // Only an explicit Pause choice disables their playback.
-  let enabled = preference !== 'off';
+  // Start every visit automatically, including visitors who paused an older build.
+  // Playback only suspends while the page or an individual preview is hidden.
+  let enabled = true;
 
   function publish() {
     document.documentElement.dataset.motionEnabled = String(enabled);
     document.documentElement.dataset.pageVisible = String(pageVisible && !document.hidden);
-    document.querySelectorAll('[data-motion-toggle]').forEach(button => {
-      button.textContent = enabled ? 'Pause animations' : 'Play animations';
-      button.setAttribute('aria-pressed', String(enabled));
-    });
     subscribers.forEach(listener => listener());
   }
   const motion = window.portfolioMotion = {
@@ -23,15 +17,10 @@
     get running() { return enabled && pageVisible && !document.hidden; },
     setEnabled(value) {
       enabled = Boolean(value);
-      preference = enabled ? 'on' : 'off';
-      try { localStorage.setItem('portfolio-motion', preference); } catch (_) { /* In-memory control still works. */ }
       publish();
     },
     subscribe(listener) { subscribers.add(listener); return () => subscribers.delete(listener); }
   };
-  document.querySelectorAll('[data-motion-toggle]').forEach(button => {
-    button.addEventListener('click', () => motion.setEnabled(!enabled));
-  });
   document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; publish(); });
   window.addEventListener('pagehide', () => { pageVisible = false; publish(); });
   window.addEventListener('pageshow', () => { pageVisible = true; publish(); });
@@ -79,14 +68,14 @@
   }
   function register(video) {
     if (states.has(video)) return states.get(video);
-    const state = { wanted: false, pending: false, generation: 0, blocked: false };
+    const state = { wanted: false, pending: false, generation: 0, blocked: false, abortRetries: 0 };
     states.set(video, state);
     video.muted = video.defaultMuted = true;
     video.playsInline = true;
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
     if (video.parentElement && video.readyState < 2) video.parentElement.dataset.previewState = 'loading';
-    video.addEventListener('playing', () => feedback(video));
+    video.addEventListener('playing', () => { state.abortRetries = 0; feedback(video); });
     video.addEventListener('waiting', () => { if (state.wanted && video.parentElement) video.parentElement.dataset.previewState = 'loading'; });
     video.addEventListener('error', () => { if (state.wanted) feedback(video, 'retry'); });
     for (const event of ['loadeddata', 'canplay']) {
@@ -106,18 +95,22 @@
       else feedback(video);
     }).catch(error => {
       if (generation !== state.generation || !state.wanted || !video.isConnected) return;
-      if (error.name !== 'AbortError') {
+      if (error.name === 'AbortError') {
+        // A browser may interrupt play without a field switch. Recover once;
+        // persistent failures expose the local retry control instead of looping.
+        if (state.abortRetries++ > 0) { state.blocked = true; feedback(video, 'retry'); }
+      } else {
         state.blocked = true;
         feedback(video, 'retry');
       }
     }).finally(() => {
       state.pending = false;
-      if (generation !== state.generation && state.wanted) attempt(video, state);
+      if (state.wanted && (generation !== state.generation || state.abortRetries === 1)) attempt(video, state);
     });
   }
   function play(video) {
     const state = register(video);
-    if (!state.wanted) state.generation++;
+    if (!state.wanted) { state.generation++; state.abortRetries = 0; }
     state.wanted = true;
     attempt(video, state);
   }

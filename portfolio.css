@@ -124,11 +124,7 @@ header{display:flex;justify-content:space-between;align-items:center;gap:20px;mi
 @media(max-width:390px){.domain{padding:9px;gap:6px}.domain strong{font-size:12px}.domain small{font-size:10px}.symbol{width:22px;height:22px;flex-basis:22px}.card-copy h2{font-size:14px}.card-copy p{font-size:12px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.preview-card,.project-space,.domain{animation:none;transition:none}}
 
-/* One explicit motion setting covers videos, CSS visuals and graph renderers. */
-.motion-toggle{min-height:36px;padding:6px 10px;border:1px solid #b7cde1;border-radius:6px;color:#245f98;background:#fff;font:500 12px/1.3 Inter,system-ui,sans-serif;white-space:nowrap}
-.motion-toggle:hover{background:#eaf2fb}
-.site-nav{flex-wrap:wrap;gap:clamp(10px,1.6vw,24px)}
+/* Suspend visuals only while their page or preview is inactive. */
 html[data-motion-enabled="false"] .project-space *,html[data-motion-enabled="false"] .project-media *,html[data-page-visible="false"] .project-space *,html[data-page-visible="false"] .project-media *{animation-play-state:paused!important}
-@media(max-width:760px){.site-nav .motion-toggle{margin-left:auto}.site-nav{justify-content:flex-start;gap:16px}}
 
 html[data-motion-enabled="true"] .square[data-preview-state="loading"]::after,html[data-motion-enabled="true"] .project-media[data-preview-state="loading"]::after{content:"Loading preview…";position:absolute;bottom:6px;left:6px;right:6px;padding:4px 6px;background:#f6f8faed;color:#304254;border-radius:4px;text-align:center;font-size:11px;pointer-events:none}

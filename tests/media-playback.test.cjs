@@ -2,8 +2,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const vm = require('node:vm');
-function setup({ reduce = false, storageFails = false } = {}) {
-  const listeners = new Map(), values = new Map();
+function setup({ reduce = false, storageFails = false, savedPause = false } = {}) {
+  const listeners = new Map(), values = new Map(savedPause ? [['portfolio-motion','off']] : []);
   const reduced = { matches: reduce, addEventListener: (type, fn) => listeners.set('reduced', fn) };
   const document = { hidden: false, documentElement: { dataset: {} }, querySelectorAll: () => [], createElement: () => ({}), addEventListener: (type, fn) => listeners.set(type, fn) };
   const window = { addEventListener: (type, fn) => listeners.set(type, fn) };
@@ -41,4 +41,14 @@ test('page visibility resumes only requested and connected videos', async () => 
 });
 test('BFCache page restoration resumes an active preview', async () => {
   const x=setup();x.play(x.video);x.resolve();await settle();x.listeners.get('pagehide')();assert.equal(x.video.paused,true);x.listeners.get('pageshow')();assert.equal(x.count(),2);
+});
+
+test('obsolete saved Pause does not suppress automatic playback', async () => {
+  const x=setup({savedPause:true});x.play(x.video);assert.equal(x.count(),1);x.resolve();await settle();assert.equal(x.video.paused,false);
+});
+test('an isolated browser AbortError gets one automatic recovery', async () => {
+  const x=setup();x.play(x.video);x.reject({name:'AbortError'});await settle();assert.equal(x.count(),2);x.resolve();await settle();assert.equal(x.video.paused,false);
+});
+test('repeated AbortErrors stop retrying instead of spinning', async () => {
+  const x=setup();x.play(x.video);x.reject({name:'AbortError'});await settle();x.reject({name:'AbortError'});await settle();assert.equal(x.count(),2);
 });

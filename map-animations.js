@@ -232,8 +232,7 @@
     pause() {
       cancelAnimationFrame(frame);
       frame = 0;
-      resize.disconnect();
-      canvases = [];
+      // Retain measured canvases and elapsed time across brief exits and tab changes.
     }
   };
 })();
