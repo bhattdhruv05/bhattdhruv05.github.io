@@ -7,16 +7,9 @@
   if (!map || !space || !pattern) return;
   const globe = map.querySelector('#map-globe');
   if (globe) {
-    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const playback = window.portfolioMotion;
-    const motionChoice = new URLSearchParams(window.location.search).get('map-motion');
-    const motionKey = 'portfolio-map-motion';
-    let motionOverride = motionChoice === 'on';
-    try {
-      if (motionOverride) localStorage.setItem(motionKey, 'on');
-      else if (motionChoice === 'system') localStorage.removeItem(motionKey);
-      else motionOverride = localStorage.getItem(motionKey) === 'on';
-    } catch {}
+    const useSystemMotion = new URLSearchParams(window.location.search).get('map-motion') === 'system';
+    const preference = useSystemMotion ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
     const coreCharge = globe.querySelector('#map-globe-charge');
     const rings = [...globe.querySelectorAll('[data-ring-axis]')].map(element => ({
       element,
@@ -103,7 +96,7 @@
     }
 
     function syncGlobe() {
-      const running = inView && playback.running && (!preference.matches || motionOverride);
+      const running = inView && playback.running && !preference?.matches;
       if (running) {
         if (!frame) {
           last = performance.now();
@@ -121,7 +114,7 @@
     });
     globeVisibility.observe(globe);
     playback.subscribe(syncGlobe);
-    preference.addEventListener('change', syncGlobe);
+    preference?.addEventListener('change', syncGlobe);
     drawGlobe();
     syncGlobe();
   }

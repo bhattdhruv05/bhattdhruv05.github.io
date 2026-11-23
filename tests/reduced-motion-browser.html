@@ -17,6 +17,10 @@ document.querySelector('#run').onclick=async()=>{
  const check=(name,pass)=>{results.push({name,pass:!!pass});output.textContent=JSON.stringify(results,null,2);};
  doc.querySelector('#explorer').scrollIntoView();await wait(200);
  check('Autoplay ignores the obsolete saved Pause setting and has no header control',win.portfolioMotion.enabled&&!doc.querySelector('[data-motion-toggle]'));
+ const ring=doc.querySelector('#map-globe [data-ring-axis]');
+ const pose=ring.getAttribute('ry');
+ await wait(650);
+ check('The map rotates by default with system reduced motion enabled',pose!==ring.getAttribute('ry'));
  doc.querySelector('[data-field="electronics"]').click();await wait(300);
  const canvas=doc.querySelector('#project-space canvas');const image=pixels(canvas);await wait(600);
  check('Selected preview actually moves with system reduced-motion',canvas.width>0&&pixels(canvas)!==image);
