@@ -25,9 +25,14 @@ document.querySelector('#run').onclick=async()=>{
  win.portfolioMotion.setEnabled(!win.portfolioMotion.enabled);await wait(700);
  check('Page resume resumes the preview',win.portfolioMotion.running&&pixels(canvas)!==frozen);
  doc.querySelector('[data-field="coding"]').click();await wait(300);
- check('CSS animations also obey page resume',win.getComputedStyle(doc.querySelector('.fem-strip')).animationPlayState==='running');
- win.portfolioMotion.setEnabled(!win.portfolioMotion.enabled);await wait(100);
- check('Page suspension stops CSS animations',win.getComputedStyle(doc.querySelector('.fem-strip')).animationPlayState==='paused');
+ const bend=doc.querySelector('.fem-canvas');
+ const bending=pixels(bend);
+ await wait(500);
+ check('The 3D bend advances after resuming',pixels(bend)!==bending);
+ win.portfolioMotion.setEnabled(false);await wait(100);
+ const held=pixels(bend);
+ await wait(400);
+ check('Page suspension freezes the 3D bend',pixels(bend)===held);
  output.textContent=results.filter(r=>r.pass).length+'/'+results.length+' passed\n'+JSON.stringify(results,null,2);
 };
 </script></html>

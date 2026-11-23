@@ -1,33 +1,39 @@
-.square canvas.concept-animation{display:block;width:100%;height:100%}
-.scan-visual{position:relative;overflow:hidden;background:#202b38!important}
-.scan-frame{position:absolute;inset:0;display:block;overflow:hidden}
-.scan-frame img{display:block;width:100%;height:100%;object-fit:cover}
-.scan-beam{position:absolute;left:22%;right:21%;top:38%;height:2px;opacity:0;background:#4ddcff;box-shadow:0 0 6px 3px #24bdeb,0 10px 23px 8px #24bdeb44;animation:terminalScan 3.8s ease-in-out infinite}
+.scan-visual{position:relative;overflow:hidden;background:#294341!important}
+.scan-frame{position:absolute;inset:0;display:block;overflow:hidden;isolation:isolate;background:#263f3d}
+.scan-frame img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:sepia(.25) saturate(.7) brightness(1.11) contrast(.83);
+  mix-blend-mode:screen;
+}
+.scan-beam{position:absolute;inset:0 21% 0 22%;pointer-events:none;animation:terminalScan 3.6s linear infinite}
+.scan-beam::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:#ffe6cb;box-shadow:0 0 7px 2px #ffad62,0 9px 20px 7px #fa862b80}
 .prototype-visual{background:#707070!important;overflow:hidden}
 .prototype-visual img{display:block;width:100%;height:100%;object-fit:cover;animation:prototypeDrift 7s ease-in-out infinite alternate}
-@keyframes terminalScan{0%,8%{top:38%;opacity:0}14%{opacity:1}78%{top:64%;opacity:1}85%,100%{top:67%;opacity:0}}
+@keyframes terminalScan{
+  0%,100%{transform:translateY(38%);opacity:0;animation-timing-function:cubic-bezier(.45,0,.55,1)}
+  11%{opacity:1}
+  49%{transform:translateY(67%);opacity:1;animation-timing-function:cubic-bezier(.45,0,.55,1)}
+  90%{opacity:.46}
+}
 @keyframes prototypeDrift{from{transform:scale(1)}to{transform:scale(1.055)}}
-.fem-visual{display:grid;place-items:center;position:relative;overflow:hidden;background:linear-gradient(150deg,#071624,#122c43)!important}
-.fem-visual svg{display:block;width:100%;height:100%;max-width:520px}
-.fem-grid{fill:none;stroke:#50738a;stroke-width:.55;opacity:.36}
-.fem-reference{fill:none;stroke:#6b8ba2;stroke-width:1;stroke-dasharray:3 4}
-.fem-target{fill:none;stroke:#83cae8;stroke-width:1.3;stroke-dasharray:4 3;opacity:.8}
-.fem-angle{fill:none;stroke:#bddbf0;stroke-width:1}
-.fem-label,.fem-phase{fill:#d5eafa;font:600 9px ui-monospace,Consolas,monospace}
-.fem-clamp{fill:#546b7d;stroke:#b3cfe0;stroke-width:1}
-.fem-base,.fem-strip{fill:none;stroke:#edc889;stroke-width:4;stroke-linecap:round}
-.fem-hinge{fill:#f2d8a5}
-.fem-strip{transform-box:view-box;transform-origin:78px 95px;animation:femBend 8s ease-in-out infinite}
-.fem-phase{font-size:9px;letter-spacing:.03em;opacity:0}
-.phase-load{animation:femLoadText 8s linear infinite}
-.phase-free{animation:femFreeText 8s linear infinite}
-.phase-correct{animation:femCorrectText 8s linear infinite}
-.phase-final{animation:femFinalText 8s linear infinite}
-@keyframes femBend{0%,6%{transform:rotate(0)}24%,29%{transform:rotate(-38deg)}39%,48%{transform:rotate(-31deg)}64%,69%{transform:rotate(-45deg)}80%,94%{transform:rotate(-38deg)}100%{transform:rotate(0)}}
-@keyframes femLoadText{0%,9%{opacity:0}10%,33%{opacity:1}34%,100%{opacity:0}}
-@keyframes femFreeText{0%,33%{opacity:0}34%,52%{opacity:1}53%,100%{opacity:0}}
-@keyframes femCorrectText{0%,55%{opacity:0}56%,75%{opacity:1}76%,100%{opacity:0}}
-@keyframes femFinalText{0%,75%{opacity:0}76%,98%{opacity:1}99%,100%{opacity:0}}
-
+.fem-visual{
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  position:relative;
+  overflow:hidden;
+  background:radial-gradient(ellipse at 50% 44%,#fff7e9,#e9d9c1)!important;
+  color:var(--deep);
+}
+.fem-canvas{display:block;width:100%;height:100%;min-height:0}
+.fem-caption,.fem-readout{display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;padding:8px 12px;font:700 12px/1.2 var(--mono)}
+.fem-caption{border-bottom:1px solid #315d6430}
+.fem-readout{background:#315d64;color:var(--cream)}
+.fem-readout strong{font-size:1.35em;color:#ffd0a7}
+.square.fem-visual .fem-caption{display:none}
+.square.fem-visual .fem-readout{padding:5px 6px;font-size:clamp(8px,1.2vw,11px)}
+.square.fem-visual{grid-template-rows:minmax(0,1fr) auto}
 
 .project-space[data-motion-visible="false"] *{animation-play-state:paused}

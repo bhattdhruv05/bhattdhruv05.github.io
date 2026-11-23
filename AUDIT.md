@@ -35,7 +35,7 @@ Browser testing used cloud Chrome, including responsive iframe viewports and syn
 ```sh
 node --test tests/media-playback.test.cjs
 node --check engineering-map.js
-node --check map-animations.js
+node --check engineering-scenes.js
 node --check media-playback.js
 node --check projects/project-animations.js
 python3 -m http.server 8000

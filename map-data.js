@@ -3,13 +3,13 @@ window.portfolioMapData = {
   "entries": {
     "gripper": {
       "title": "Smart Gripper Design and Robot Cell Simulation",
-      "video": "mcd/assets/gripper-map.mp4",
-      "mechanismVideo": "mcd/assets/mechanism-map.mp4"
+      "video": "assets/high-res/map-gripper-cell.mp4",
+      "mechanismVideo": "assets/high-res/map-gripper-mechanism.mp4"
     },
     "cam": {
       "title": "CAM Process Planning for a Gearbox Housing",
       "image": "mcd/assets/cam-simulation.png",
-      "video": "mcd/assets/cam-map.mp4"
+      "video": "assets/high-res/map-gearbox-cam.mp4"
     },
     "ifs": {
       "title": "Robotic Bending with FEM Springback Correction"
@@ -18,9 +18,7 @@ window.portfolioMapData = {
       "title": "Automated Visual Inspection of Terminal Links"
     },
     "assembly": {
-      "title": "Automated Spring Insertion Prototype",
-      "image": "elmex/roller-prototype.jpg",
-      "video": "mcd/assets/assembly-map.mp4"
+      "title": "Automated Spring Insertion Prototype"
     },
     "irp": {
       "title": "Copper Alloy Notch Support Modelling"

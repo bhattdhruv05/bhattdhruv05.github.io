@@ -10,7 +10,7 @@ This is a static website with no build step or package installation.
 python3 -m http.server 8000
 ```
 
-Open `http://localhost:8000`.
+Open `http://localhost:8000`. The browser bundle for Motion 14.14.0 is checked in under `assets/vendor/motion` with its MIT license, so the site can serve animations without a build or a third-party script request.
 
 ## Publish with GitHub Pages
 
@@ -20,7 +20,7 @@ The homepage is `index.html`; project case studies are in `projects/index.html`.
 
 ## Interaction architecture and checks
 
-`engineering-map.js` owns field selection and dismissal. `map-data.js` holds the existing project content. `media-playback.js` handles visibility and interruption recovery; map and case-study canvas scripts draw only when needed. Shared layout is in `portfolio.css`, with reusable animated illustrations in `visuals.css`.
+`engineering-map.js` owns field selection and dismissal. `map-data.js` holds the existing project content. `media-playback.js` handles visibility and interruption recovery; map canvas previews and the shared engineering scenes draw only when visible. Shared layout is in `portfolio.css`, with reusable animated illustrations in `visuals.css`.
 
 Run `node --test tests/media-playback.test.cjs` for playback regressions. While serving locally, open `tests/map-browser.html` for pointer, dismissal-race, layout and keyboard checks. See `AUDIT.md` for findings, verification and browser coverage limits.
 

@@ -21,18 +21,32 @@ document.querySelector('#run').onclick=async()=>{
    const before=videos.map(v=>v.currentTime);await wait(900);
    videos.forEach((v,i)=>check(field+': video '+(i+1)+' advances',!v.paused&&v.currentTime!==before[i],{before:before[i],after:v.currentTime,source:v.getAttribute('src')}));
   }
+  const mapAssembly=doc.querySelector('#project-space canvas[data-project-animation="assembly"]');
+  await wait(160);
+  const assemblyFrame=pixels(mapAssembly);
+  await wait(700);
+  check('Map assembly trace moves over the CAD render',pixels(mapAssembly)!==assemblyFrame);
   select('coding');await wait(400);
-  const css=[...doc.querySelectorAll('#project-space .fem-strip,#project-space .scan-beam')];
+  const css=[...doc.querySelectorAll('#project-space .scan-beam')];
   const style=e=>{const s=win.getComputedStyle(e);return [s.transform,s.top,s.opacity].join('|');};
+  const bend=doc.querySelector('#project-space .fem-canvas');
+  const sheet=pixels(bend);
   const before=css.map(style);await wait(1500);
+  check('3D bend changes pixels',sheet!==pixels(bend));
   css.forEach((e,i)=>check('CSS '+e.classList[0]+' changes visually',before[i]!==style(e)));
-  select('data');await wait(500);
-  const canvases=[...doc.querySelectorAll('#project-space canvas')],images=canvases.map(pixels);await wait(1400);
-  canvases.forEach((c,i)=>check('Canvas '+c.dataset.animation+' changes pixels',images[i]!==pixels(c)));
+  select('data');
+  const analytics=doc.querySelector('#project-space video');
+  await until(()=>analytics.readyState>=2&&!analytics.paused);
+  const analyticsTime=analytics.currentTime;
+  const copper=doc.querySelector('#project-space canvas[data-project-animation="copper"]');
+  const copperFrame=pixels(copper);
+  await wait(800);
+  check('Data and modelling shows moving robot footage',analytics.currentTime!==analyticsTime);
+  check('Data and modelling shows the animated copper specimen',pixels(copper)!==copperFrame);
   select('electronics');await wait(400);
   const signal=doc.querySelector('#project-space canvas'),initial=pixels(signal);await wait(700);
   check('Fatigue canvas changes pixels',initial!==pixels(signal));
-  win.portfolioAnimations.pause();const held=pixels(signal);win.portfolioAnimations.play();
+  win.portfolioMotion.setEnabled(false);const held=pixels(signal);win.portfolioMotion.setEnabled(true);
   check('Brief suspension preserves the graph frame instead of restarting it',pixels(signal)===held);
   win.portfolioMotion.setEnabled(false);const frozen=pixels(signal);await wait(400);
   check('Pause freezes the graph',pixels(signal)===frozen);
@@ -49,16 +63,21 @@ document.querySelector('#run').onclick=async()=>{
   await new Promise(resolve=>{frame.onload=resolve;frame.src='../projects/';});
   const projectDoc=frame.contentDocument,projectWin=frame.contentWindow;
   projectWin.portfolioMotion.setEnabled(true);
-  for(const id of ['gripper','assembly','cam']){
+  for(const id of ['gripper','cam']){
     projectDoc.querySelector('#'+id).scrollIntoView({behavior:'instant'});
     const clips=[...projectDoc.querySelectorAll('#'+id+' video')];
     await until(()=>clips.every(v=>v.readyState>=2&&!v.paused));
     const start=clips.map(v=>v.currentTime);await wait(700);
     clips.forEach((v,i)=>check('Project '+id+' video '+(i+1)+' advances',!v.paused&&v.currentTime!==start[i]));
   }
-  projectDoc.querySelector('#iep').scrollIntoView({behavior:'instant'});await wait(400);
-  const projectSignal=projectDoc.querySelector('#iep canvas'),projectPixels=pixels(projectSignal);await wait(700);
-  check('Project fatigue graph changes pixels',pixels(projectSignal)!==projectPixels);
+  for(const id of ['assembly','irp','iep']){
+    const scene=projectDoc.querySelector('#'+id+' canvas');
+    scene.scrollIntoView({block:'center',behavior:'instant'});
+    await wait(400);
+    const original=pixels(scene);
+    await wait(180);
+    check('Project '+id+' moves between nearby frames',pixels(scene)!==original);
+  }
 
  }catch(error){check('Test execution',false,error.message);}
  output.textContent=`${results.filter(r=>r.pass).length}/${results.length} passed\n`+JSON.stringify(results,null,2);

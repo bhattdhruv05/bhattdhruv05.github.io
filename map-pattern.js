@@ -5,6 +5,32 @@
   const space = document.getElementById('project-space');
   const pattern = document.getElementById('map-pattern');
   if (!map || !space || !pattern) return;
+  const globe = map.querySelector('#map-globe');
+  if (globe) {
+    const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const playback = window.portfolioMotion;
+    let inView = false;
+    let optedIn = false;
+    // Preserve an explicit playback choice from an existing preview session.
+    try { optedIn = sessionStorage.getItem('portfolio-sphere-motion') === 'play'; } catch {}
+
+    function syncGlobe() {
+      const running = inView && playback.running && (!preference.matches || optedIn);
+      globe.dataset.motionOptIn = String(optedIn);
+      globe.dataset.orbitRunning = String(running);
+      if (running) globe.unpauseAnimations?.();
+      else globe.pauseAnimations?.();
+    }
+
+    const globeVisibility = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+      syncGlobe();
+    });
+    globeVisibility.observe(globe);
+    playback.subscribe(syncGlobe);
+    preference.addEventListener('change', syncGlobe);
+    syncGlobe();
+  }
   const fields = [...map.querySelectorAll('.domain')];
   const namespace = 'http://www.w3.org/2000/svg';
   let pending = false;

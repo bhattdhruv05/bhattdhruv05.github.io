@@ -15,7 +15,6 @@
 
   function pause() {
     space.querySelectorAll('video').forEach(window.portfolioMedia.pause);
-    window.portfolioAnimations.pause();
     space.dataset.motionVisible = 'false';
   }
 
@@ -27,7 +26,6 @@
     });
     if (!visible) { pause(); return; }
     space.dataset.motionVisible = 'true';
-    window.portfolioAnimations.play();
     space.querySelectorAll('video').forEach(window.portfolioMedia.play);
   }
 
@@ -80,14 +78,18 @@
     card.className = 'preview-card';
     const square = document.createElement('div');
     square.className = 'square';
-    const animation = key === 'data' && id === 'gripper' ? 'analytics' : id === 'irp' ? 'copper' : id === 'iep' ? 'fatigue' : null;
+    const analytics = key === 'data' && id === 'gripper';
+    const scene = { iep: 'fatigue', assembly: 'assembly', irp: 'copper' }[id];
     if (id === 'ifs') window.mountFemVisual(square);
-    else if (id === 'elmex') {
+    else if (scene) {
+      if (scene === 'assembly') square.classList.add('square--assembly');
+      square.append(window.portfolioScenes.preview(scene));
+    } else if (id === 'elmex') {
       square.classList.add('scan-visual');
       const frame = document.createElement('span');
       frame.className = 'scan-frame';
       const img = document.createElement('img');
-      img.src = 'elmex/inspection-bed.webp';
+      img.src = 'assets/high-res/inspection-bed.webp';
       img.alt = 'Concept visualization of a terminal link beneath a scanner with three surrounding cameras';
       img.decoding = 'async';
       const beam = document.createElement('span');
@@ -95,24 +97,15 @@
       beam.setAttribute('aria-hidden', 'true');
       frame.append(img, beam);
       square.append(frame);
-    } else if (animation) {
-      const canvas = document.createElement('canvas');
-      canvas.className = 'concept-animation';
-      canvas.dataset.animation = animation;
-      canvas.setAttribute('role', 'img');
-      canvas.setAttribute('aria-label', animation === 'analytics'
-        ? 'Reported robotic arm energy model R squared: random split 0.92, chronological split 0.50'
-        : animation === 'copper' ? 'Measured versus fitted notch support factors for four copper alloy specimens; model R squared 0.953'
-        : 'Illustrative moving load signal on a graph');
-      square.append(canvas);
     } else if (data.video) {
       const video = document.createElement('video');
+      if (id === 'gripper' && key !== 'mechanical') square.classList.add('square--cell');
       // Fetch media only when its field is selected. Reuse the node on return.
       video.src = key === 'mechanical' && id === 'gripper' ? data.mechanismVideo : data.video;
       video.muted = video.defaultMuted = video.loop = video.playsInline = true;
       video.preload = 'metadata';
-      video.setAttribute('aria-label', id === 'assembly' ? 'Illustrative spring assembly sequence over the final CAD rendering' : data.title + ' simulation');
-      video.poster = id === 'assembly' ? data.image : id === 'cam' ? 'mcd/assets/cam-poster-v2.jpg' : key === 'mechanical' ? 'mcd/assets/mechanism-poster.jpg' : 'mcd/assets/gripper-poster-v2.jpg';
+      video.setAttribute('aria-label', data.title + ' simulation');
+      video.poster = id === 'cam' ? 'assets/high-res/gearbox-cam.webp' : key === 'mechanical' ? 'assets/high-res/gripper-mechanism.webp' : 'assets/high-res/gripper-cell.webp';
       const error = document.createElement('div');
       error.className = 'media-error';
       error.hidden = true;
@@ -120,12 +113,24 @@
         error.textContent = 'Preview unavailable. The full project is still available below.';
         error.hidden = false;
       });
-      square.append(video, error);
+      square.append(video);
+      if (analytics) {
+        const metrics = document.createElement('div');
+        metrics.className = 'energy-preview';
+        metrics.innerHTML = `
+          <p>Energy model · R²</p>
+          <dl>
+            <div><dt>Random</dt><dd>0.92</dd></div>
+            <div><dt>Chronological</dt><dd>0.50</dd></div>
+          </dl>`;
+        square.append(metrics);
+      }
+      square.append(error);
     }
     const copy = document.createElement('div');
     copy.className = 'card-copy';
     const title = document.createElement('h2');
-    title.textContent = key === 'data' && id === 'gripper' ? 'Data Analytics for Robotic Arm' : data.title;
+    title.textContent = analytics ? 'Data Analytics for Robotic Arm' : data.title;
     const description = document.createElement('p');
     description.textContent = scopes[key][id];
     const link = document.createElement('a');
@@ -146,6 +151,7 @@
     active = key;
     if (!cards.has(key)) cards.set(key, groups[key].map(id => makeCard(key, id)));
     space.replaceChildren(...cards.get(key));
+    space.dispatchEvent(new Event('portfolio:previews', { bubbles: true }));
     space.classList.add('visible');
     map.classList.add('has-selection');
     fields.forEach(f => f.setAttribute('aria-expanded', String(f.dataset.field === key)));
@@ -206,7 +212,7 @@
   }, { passive: true });
   motion.subscribe(() => {
     if (motion.running) play();
-    else { pause(); if (!motion.enabled && active) window.portfolioAnimations.play(); }
+    else pause();
   });
   window.addEventListener('pageshow', () => { scheduleDraw(); play(); });
   window.addEventListener('pagehide', pause);
