@@ -9,12 +9,27 @@
   const { entries, groups, scopes } = window.portfolioMapData;
   const fields = [...map.querySelectorAll('[data-field]')];
   const motion = window.portfolioMotion;
+  const media = window.portfolioMedia;
   const cards = new Map();
+  const clips = new Map();
   let active = null, leaveTimer = 0, dismissTimer = 0, geometryFrame = 0;
   let keyboard = false, pinned = false, scrollFrame = 0, lastScroll = -Infinity;
 
+  function prepareClip(src, poster, title) {
+    const video = document.createElement('video');
+    video.loop = true;
+    video.poster = poster;
+    video.setAttribute('aria-label', title);
+    clips.set(src, media.prepare(video, src));
+  }
+
+  // Hold one buffered video per source, including clips shared by several fields.
+  prepareClip(entries.gripper.video, 'assets/high-res/gripper-cell.webp', 'Robot-cell pick-and-place simulation');
+  prepareClip(entries.gripper.mechanismVideo, 'assets/high-res/gripper-mechanism.webp', 'Three-jaw gripper mechanism animation');
+  prepareClip(entries.cam.video, 'assets/high-res/gearbox-cam.webp', 'Gearbox housing CAM simulation');
+
   function pause() {
-    space.querySelectorAll('video').forEach(window.portfolioMedia.pause);
+    space.querySelectorAll('video').forEach(media.pause);
     space.dataset.motionVisible = 'false';
   }
 
@@ -26,7 +41,7 @@
     });
     if (!visible) { pause(); return; }
     space.dataset.motionVisible = 'true';
-    space.querySelectorAll('video').forEach(window.portfolioMedia.play);
+    space.querySelectorAll('video').forEach(media.play);
   }
 
   function draw() {
@@ -98,22 +113,11 @@
       frame.append(img, beam);
       square.append(frame);
     } else if (data.video) {
-      const video = document.createElement('video');
       if (id === 'gripper' && key !== 'mechanical') square.classList.add('square--cell');
-      // Fetch media only when its field is selected. Reuse the node on return.
-      video.src = key === 'mechanical' && id === 'gripper' ? data.mechanismVideo : data.video;
-      video.muted = video.defaultMuted = video.loop = video.playsInline = true;
-      video.preload = 'metadata';
-      video.setAttribute('aria-label', data.title + ' simulation');
-      video.poster = id === 'cam' ? 'assets/high-res/gearbox-cam.webp' : key === 'mechanical' ? 'assets/high-res/gripper-mechanism.webp' : 'assets/high-res/gripper-cell.webp';
+      square.dataset.mapClip = key === 'mechanical' && id === 'gripper' ? data.mechanismVideo : data.video;
       const error = document.createElement('div');
       error.className = 'media-error';
       error.hidden = true;
-      video.addEventListener('error', () => {
-        error.textContent = 'Preview unavailable. The full project is still available below.';
-        error.hidden = false;
-      });
-      square.append(video);
       if (analytics) {
         const metrics = document.createElement('div');
         metrics.className = 'energy-preview';
@@ -151,6 +155,7 @@
     active = key;
     if (!cards.has(key)) cards.set(key, groups[key].map(id => makeCard(key, id)));
     space.replaceChildren(...cards.get(key));
+    space.querySelectorAll('[data-map-clip]').forEach(square => square.prepend(clips.get(square.dataset.mapClip)));
     space.dispatchEvent(new Event('portfolio:previews', { bubbles: true }));
     space.classList.add('visible');
     map.classList.add('has-selection');

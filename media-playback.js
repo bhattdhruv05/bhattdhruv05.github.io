@@ -47,7 +47,6 @@
   const states = new Map();
   function feedback(video, message = '') {
     const element = video.parentElement?.querySelector('.media-error');
-    if (video.parentElement) video.parentElement.dataset.previewState = message ? 'blocked' : 'ready';
     if (!element) return;
     element.hidden = !message;
     if (!message) return;
@@ -74,15 +73,21 @@
     video.playsInline = true;
     video.setAttribute('muted', '');
     video.setAttribute('playsinline', '');
-    if (video.parentElement && video.readyState < 2) video.parentElement.dataset.previewState = 'loading';
     video.addEventListener('playing', () => { state.abortRetries = 0; feedback(video); });
-    video.addEventListener('waiting', () => { if (state.wanted && video.parentElement) video.parentElement.dataset.previewState = 'loading'; });
     video.addEventListener('error', () => { if (state.wanted) feedback(video, 'retry'); });
     for (const event of ['loadeddata', 'canplay']) {
       video.addEventListener(event, () => attempt(video, state));
     }
     return state;
   }
+
+  function prepare(video, src) {
+    register(video);
+    video.preload = navigator.connection?.saveData ? 'metadata' : 'auto';
+    if (src) video.src = src;
+    return video;
+  }
+
   function attempt(video, state) {
     if (!state.wanted || state.pending || state.blocked || !motion.running || !video.isConnected) return;
     if (!video.paused && video.readyState >= 2) return;
@@ -110,8 +115,16 @@
   }
   function play(video) {
     const state = register(video);
-    if (!state.wanted) { state.generation++; state.abortRetries = 0; }
+    if (!state.wanted) {
+      state.generation++;
+      state.abortRetries = 0;
+      state.blocked = false;
+    }
     state.wanted = true;
+    if (video.error) {
+      feedback(video, 'retry');
+      return;
+    }
     attempt(video, state);
   }
   function pause(video) {
@@ -119,7 +132,7 @@
     if (state) { state.wanted = false; state.generation++; }
     video.pause();
   }
-  window.portfolioMedia = { play, pause };
+  window.portfolioMedia = { prepare, play, pause };
   motion.subscribe(() => states.forEach((state, video) => {
     if (!motion.running || !state.wanted || !video.isConnected) { state.generation++; video.pause(); }
     else { state.blocked = false; attempt(video, state); }
@@ -128,20 +141,16 @@
   const media = [...document.querySelectorAll('.project-media')];
   function setVisible(root, visible) {
     root.dataset.motionVisible = String(visible);
-    root.querySelectorAll('video').forEach(video => {
-      if (visible) {
-        if (video.dataset.poster && !video.getAttribute('poster')) video.poster = video.dataset.poster;
-        if (video.dataset.src && !video.getAttribute('src')) video.src = video.dataset.src;
-        play(video);
-      } else pause(video);
-    });
+    root.querySelectorAll('video').forEach(visible ? play : pause);
   }
   media.forEach(root => {
-    if (!root.querySelector('video')) return;
+    const video = root.querySelector('video');
+    if (!video) return;
     const error = document.createElement('div');
     error.className = 'media-error';
     error.hidden = true;
     root.appendChild(error);
+    prepare(video);
   });
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {

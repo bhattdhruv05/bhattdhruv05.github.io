@@ -96,18 +96,8 @@ header{display:flex;justify-content:space-between;align-items:center;gap:20px;mi
 .map-orbit-back,.map-orbit-front,.map-globe-mesh{fill:none}
 .map-orbit-back{stroke:#9ac1ae;stroke-width:1;opacity:.44}
 .map-orbit-front{stroke:#d0e2c9;stroke-width:1.25;opacity:.66}
-.map-globe-mesh{stroke:#accdbb;stroke-width:1;opacity:.65}
-@property --map-sphere-phase{syntax:"<angle>";inherits:false;initial-value:0deg}
-.map-globe-rotor{
-  transform-box:view-box;
-  transform-origin:center;
-  transform:rotateX(calc(27deg * sin(var(--map-sphere-phase)))) rotateY(calc(34deg * cos(var(--map-sphere-phase)))) rotateZ(calc(18deg * sin(var(--map-sphere-phase) + 27deg)));
-  animation:map-globe-drift 24s linear infinite;
-}
-.map-idle[data-orbit-running="false"] .map-globe-rotor{animation-play-state:paused}
-@keyframes map-globe-drift{to{--map-sphere-phase:360deg}}
-@media(prefers-reduced-motion:reduce){.map-idle:not([data-motion-opt-in="true"]) .map-globe-rotor{animation-play-state:paused}}
-.map-rotor-track{fill:none;stroke:#afe2cc;stroke-width:2;opacity:.68}
+.map-globe-mesh{stroke:#b1dfce;stroke-width:1.15;opacity:.72}
+.map-rotor-track{fill:none;stroke:#acf2d9;stroke-width:1.9;opacity:.83}
 .map-orbit-marker{fill:#e3efe0;stroke:#254d52;stroke-width:1.15}
 .map-orbit-accent{fill:var(--orange);stroke:#ffe2b0;stroke-width:1}
 .explorer.has-selection .map-idle{opacity:.25;filter:blur(1.5px)}
@@ -191,4 +181,3 @@ header{display:flex;justify-content:space-between;align-items:center;gap:20px;mi
   .project-space,.domain,.map-idle,.action-primary{transition:none}
 }
 html[data-motion-enabled="false"] .project-space *,html[data-motion-enabled="false"] .project-media *,html[data-page-visible="false"] .project-space *,html[data-page-visible="false"] .project-media *{animation-play-state:paused!important}
-html[data-motion-enabled="true"] :is(.square,.project-media)[data-preview-state="loading"]::after{content:"Loading preview…";position:absolute;bottom:6px;left:6px;right:6px;padding:4px 6px;background:var(--cream);color:var(--ink);text-align:center;font-size:11px;pointer-events:none}

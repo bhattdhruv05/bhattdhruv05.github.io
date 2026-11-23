@@ -6,8 +6,8 @@
 <meta name="description" content="Explore Dhruv Bhatt's projects across automation, mechanical design, simulation, programming and sensing.">
 <meta name="theme-color" content="#f2e7d6">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23315d64'/%3E%3Cpath d='M8 8h7c10 0 10 16 0 16H8z' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="portfolio.css?v=editorial-12">
-<link rel="stylesheet" href="visuals.css?v=editorial-3"><link rel="preload" href="assets/fonts/inter-400.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin><script defer src="assets/vendor/motion/motion-14.14.0.js"></script><script defer src="site-motion.js?v=editorial-2"></script><script defer src="media-playback.js?v=20261104-autoplay-v4"></script><script defer src="engineering-projection.js?v=2"></script><script defer src="fem-bending.js?v=4"></script><script defer src="map-pattern.js?v=orbital-4"></script><script defer src="map-data.js?v=editorial-4"></script><script defer src="engineering-scenes.js?v=6"></script><script defer src="engineering-map.js?v=editorial-5"></script><script defer src="featured-projects.js?v=2"></script></head>
+<link rel="stylesheet" href="portfolio.css?v=editorial-13">
+<link rel="stylesheet" href="visuals.css?v=editorial-3"><link rel="preload" href="assets/fonts/inter-400.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" as="image" href="assets/high-res/inspection-bed.webp"><link rel="preload" as="image" href="assets/high-res/spring-insertion.webp"><script defer src="assets/vendor/motion/motion-14.14.0.js"></script><script defer src="site-motion.js?v=editorial-2"></script><script defer src="media-playback.js?v=5"></script><script defer src="engineering-projection.js?v=2"></script><script defer src="fem-bending.js?v=4"></script><script defer src="map-pattern.js?v=orbital-5"></script><script defer src="map-data.js?v=editorial-4"></script><script defer src="engineering-scenes.js?v=7"></script><script defer src="engineering-map.js?v=editorial-6"></script><script defer src="featured-projects.js?v=2"></script></head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
@@ -46,20 +46,15 @@
 <svg id="map-globe" class="map-idle" viewBox="0 0 240 222" aria-hidden="true" focusable="false">
   <defs>
     <radialGradient id="map-globe-shading" cx="36%" cy="27%" r="77%">
-      <stop offset="0" stop-color="#527f80"/>
-      <stop offset=".62" stop-color="#28555b"/>
+      <stop offset="0" stop-color="#5c9691"/>
+      <stop offset=".62" stop-color="#33676a"/>
       <stop offset="1" stop-color="#16373d"/>
     </radialGradient>
     <radialGradient id="map-globe-halo">
-      <stop offset=".45" stop-color="#90c5b4" stop-opacity=".20"/>
-      <stop offset="1" stop-color="#90c5b4" stop-opacity="0"/>
+      <stop offset=".38" stop-color="#8ae6cf" stop-opacity=".34"/>
+      <stop offset=".66" stop-color="#6bc0af" stop-opacity=".20"/>
+      <stop offset="1" stop-color="#6bc0af" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="map-globe-pulse">
-      <stop offset="0" stop-color="#c7fae3" stop-opacity=".78"/>
-      <stop offset=".46" stop-color="#87e8d1" stop-opacity=".45"/>
-      <stop offset="1" stop-color="#87e8d1" stop-opacity="0"/>
-    </radialGradient>
-    <clipPath id="map-globe-disc"><circle cx="120" cy="111" r="58"/></clipPath>
   </defs>
   <circle cx="120" cy="111" r="93" fill="url(#map-globe-halo)"/>
   <g class="map-orbit-back">
@@ -68,20 +63,14 @@
     <ellipse cx="120" cy="111" rx="96" ry="27" transform="rotate(73 120 111)"/>
   </g>
   <circle cx="120" cy="111" r="58" fill="url(#map-globe-shading)" stroke="#a5c6b5" stroke-width="1.2"/>
-  <circle id="map-glow-pulse" cx="120" cy="111" r="50" fill="url(#map-globe-pulse)" opacity=".2">
-    <animate attributeName="opacity" values=".2;.2;.64;.2;.2" keyTimes="0;.3;.42;.62;1"
-      calcMode="spline" keySplines=".4 0 .6 1;.2 0 .2 1;.3 0 .6 1;.4 0 .6 1"
-      dur="6.8s" repeatCount="indefinite"/>
-  </circle>
   <g id="map-globe-rotor" class="map-globe-rotor">
-    <g class="map-globe-mesh" clip-path="url(#map-globe-disc)" transform="rotate(-16 120 111)">
-      <ellipse cx="120" cy="111" rx="56" ry="22"/>
-      <ellipse cx="120" cy="86" rx="51" ry="13"/>
-      <ellipse cx="120" cy="136" rx="51" ry="13"/>
-      <ellipse cx="120" cy="111" rx="30" ry="57"/>
-      <ellipse cx="120" cy="111" rx="51" ry="57"/>
+    <g class="map-globe-mesh">
+      <ellipse cx="120" cy="111" rx="56" ry="15" data-ring-axis="1 0 0" transform="rotate(64 120 111)"/>
+      <ellipse cx="120" cy="111" rx="56" ry="26" data-ring-axis="0 1 0" transform="rotate(-5 120 111)"/>
+      <ellipse cx="120" cy="111" rx="56" ry="48" data-ring-axis="0 0 1" transform="rotate(22 120 111)"/>
+      <ellipse cx="120" cy="111" rx="56" ry="33" data-ring-axis=".707 0 .707" transform="rotate(-48 120 111)"/>
     </g>
-    <circle class="map-rotor-track" cx="120" cy="111" r="51" pathLength="100"
+    <ellipse class="map-rotor-track" cx="120" cy="111" rx="49" ry="25" data-ring-axis="0 .707 .707" pathLength="100"
       stroke-dasharray="25 8 8 7 24 6 5 17"/>
   </g>
   <g transform="rotate(-27 120 111)">

@@ -14,9 +14,16 @@ document.querySelector('#run').onclick=async()=>{
  try{
   doc.querySelector('#explorer').scrollIntoView();await wait(200);
   check('Previews autoplay without a global control',win.portfolioMotion.enabled&&!doc.querySelector('[data-motion-toggle]'));
+  const rings=[...doc.querySelectorAll('#map-globe [data-ring-axis]')];
+  const orbitFrame=()=>rings.map(ring=>ring.getAttribute('transform')+' '+ring.getAttribute('ry')).join('|');
+  const firstOrbit=orbitFrame();await wait(500);
+  const secondOrbit=orbitFrame();await wait(500);
+  check('Globe continuously changes tilt from the first frame',rings.length>=3&&firstOrbit!==secondOrbit&&secondOrbit!==orbitFrame());
+  check('Globe has a steady teal halo',doc.querySelector('#map-globe-halo')&&!doc.querySelector('#map-glow-pulse'));
   const select=key=>doc.querySelector(`[data-field="${key}"]`).click();
   for(const field of ['mechanical','robotics']){
    select(field);const videos=[...doc.querySelectorAll('#project-space video')];
+   check(field+': previews have preloaded sources and posters',videos.length>0&&videos.every(v=>v.src&&v.preload==='auto'&&v.poster&&win.getComputedStyle(v.parentElement,'::after').content==='none'));
    await until(()=>videos.every(v=>v.readyState>=2&&!v.paused));
    const before=videos.map(v=>v.currentTime);await wait(900);
    videos.forEach((v,i)=>check(field+': video '+(i+1)+' advances',!v.paused&&v.currentTime!==before[i],{before:before[i],after:v.currentTime,source:v.getAttribute('src')}));
@@ -62,6 +69,7 @@ document.querySelector('#run').onclick=async()=>{
   doc.querySelector('#contact').scrollIntoView({behavior:'instant'});await until(()=>video.paused,2500);check('Offscreen video pauses',video.paused,{visual:video.getBoundingClientRect().toJSON(),viewport:win.innerHeight});
   await new Promise(resolve=>{frame.onload=resolve;frame.src='../projects/';});
   const projectDoc=frame.contentDocument,projectWin=frame.contentWindow;
+  check('Project clips have sources and posters on page load',[...projectDoc.querySelectorAll('.project-media video')].every(v=>v.src&&v.poster&&v.preload==='auto'));
   projectWin.portfolioMotion.setEnabled(true);
   for(const id of ['gripper','cam']){
     projectDoc.querySelector('#'+id).scrollIntoView({behavior:'instant'});

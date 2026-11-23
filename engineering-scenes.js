@@ -475,7 +475,6 @@
     times.set(canvas, 0);
     if (canvas.dataset.projectAnimation === 'assembly' && !assemblyCad.naturalWidth) {
       assemblyCad.addEventListener('load', () => draw(canvas, times.get(canvas)), { once: true });
-      if (!assemblyCad.getAttribute('src')) assemblyCad.src = assemblyCadUrl.href;
     }
     measure(canvas);
     draw(canvas, 0);
@@ -495,6 +494,7 @@
   }
 
   window.portfolioScenes = { preview };
+  assemblyCad.src = assemblyCadUrl.href;
   document.querySelectorAll('.project-media canvas.project-animation').forEach(mount);
   motion.subscribe(sync);
 })();

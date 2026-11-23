@@ -9,17 +9,51 @@
   if (globe) {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const playback = window.portfolioMotion;
+    const rings = [...globe.querySelectorAll('[data-ring-axis]')].map(element => ({
+      element,
+      normal: element.dataset.ringAxis.split(' ').map(Number),
+      radius: Number(element.getAttribute('rx'))
+    }));
     let inView = false;
-    let optedIn = false;
-    // Preserve an explicit playback choice from an existing preview session.
-    try { optedIn = sessionStorage.getItem('portfolio-sphere-motion') === 'play'; } catch {}
+    let frame = 0, last = 0, elapsed = 0;
+
+    function drawGlobe() {
+      const yaw = elapsed * .14 + .42;
+      const pitch = .56 * Math.sin(elapsed * .19 + .6);
+      const cosYaw = Math.cos(yaw), sinYaw = Math.sin(yaw);
+      const cosPitch = Math.cos(pitch), sinPitch = Math.sin(pitch);
+      for (const { element, normal: [x, y, z], radius } of rings) {
+        const nx = x * cosYaw + z * sinYaw;
+        const depth = z * cosYaw - x * sinYaw;
+        const ny = y * cosPitch - depth * sinPitch;
+        const nz = y * sinPitch + depth * cosPitch;
+        // An orbit viewed edge-on becomes a line. Its other radius stays constant.
+        const tilt = Math.atan2(nx, -ny) * 180 / Math.PI;
+        element.setAttribute('ry', Math.max(.55, Math.abs(nz) * radius).toFixed(2));
+        element.setAttribute('transform', `rotate(${tilt.toFixed(2)} 120 111)`);
+      }
+    }
+
+    function tickGlobe(now) {
+      elapsed += Math.min(.05, (now - last) / 1000);
+      last = now;
+      drawGlobe();
+      frame = requestAnimationFrame(tickGlobe);
+    }
 
     function syncGlobe() {
-      const running = inView && playback.running && (!preference.matches || optedIn);
-      globe.dataset.motionOptIn = String(optedIn);
-      globe.dataset.orbitRunning = String(running);
-      if (running) globe.unpauseAnimations?.();
-      else globe.pauseAnimations?.();
+      const running = inView && playback.running && !preference.matches;
+      if (running) {
+        globe.unpauseAnimations?.();
+        if (!frame) {
+          last = performance.now();
+          frame = requestAnimationFrame(tickGlobe);
+        }
+      } else {
+        globe.pauseAnimations?.();
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
     }
 
     const globeVisibility = new IntersectionObserver(([entry]) => {
@@ -29,6 +63,7 @@
     globeVisibility.observe(globe);
     playback.subscribe(syncGlobe);
     preference.addEventListener('change', syncGlobe);
+    drawGlobe();
     syncGlobe();
   }
   const fields = [...map.querySelectorAll('.domain')];
