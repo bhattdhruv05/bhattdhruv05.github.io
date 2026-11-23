@@ -342,6 +342,8 @@
     assemblyCad.src = assemblyCadUrl.href;
     assemblyNearby.disconnect();
   }, { rootMargin: '300px 0px' });
+  // The trace points were measured on the original CAD export, before upscaling.
+  const assemblyReference = { width: 917, height: 830 };
   const assemblySteps = [
     { title: 'Feed the spring', path: [[347,94],[298,180],[235,284]] },
     { title: 'Position the terminal link', path: [[136,410],[161,391],[192,402]] },
@@ -369,7 +371,10 @@
       const position = (time / stepTime) % assemblySteps.length;
       const stage = Math.floor(position);
       const progress = position - stage;
-      const path = assemblySteps[stage].path.map(([x,y]) => [left + x * scale, top + y * scale]);
+      const path = assemblySteps[stage].path.map(([x,y]) => [
+        left + x * width / assemblyReference.width,
+        top + y * height / assemblyReference.height
+      ]);
       const active = Math.min(1, progress / .72);
       const distances = path.slice(1).map(([x,y], i) => Math.hypot(x-path[i][0], y-path[i][1]));
       let remaining = active * (distances[0] + distances[1]);

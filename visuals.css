@@ -1,14 +1,13 @@
-.scan-visual{position:relative;overflow:hidden;background:#294341!important}
-.scan-frame{position:absolute;inset:0;display:block;overflow:hidden;isolation:isolate;background:#263f3d}
+.scan-visual{position:relative;overflow:hidden;background:#c2b7a4!important}
+.scan-frame{position:absolute;inset:0;display:block;overflow:hidden;background:#c2b7a4}
 .scan-frame img{
   display:block;
   width:100%;
   height:100%;
   object-fit:cover;
-  filter:sepia(.25) saturate(.7) brightness(1.11) contrast(.83);
-  mix-blend-mode:screen;
 }
 .scan-beam{position:absolute;inset:0 21% 0 22%;pointer-events:none;animation:terminalScan 3.6s linear infinite}
+.scan-map-image:not([data-ready="true"]),.scan-map-image:not([data-ready="true"])+.scan-beam{visibility:hidden;animation-play-state:paused}
 .scan-beam::after{content:"";position:absolute;inset:0 0 auto;height:2px;background:#ffe6cb;box-shadow:0 0 7px 2px #ffad62,0 9px 20px 7px #fa862b80}
 .prototype-visual{background:#707070!important;overflow:hidden}
 .prototype-visual img{display:block;width:100%;height:100%;object-fit:cover;animation:prototypeDrift 7s ease-in-out infinite alternate}

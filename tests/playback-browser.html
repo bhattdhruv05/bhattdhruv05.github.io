@@ -8,6 +8,26 @@ frame.addEventListener('load',()=>document.querySelector('#run').disabled=false)
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 async function until(test,timeout=9000){const end=performance.now()+timeout;while(!test()&&performance.now()<end)await wait(100);return test();}
 function pixels(canvas){let hash=0;const d=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;for(let i=0;i<d.length;i+=4){hash=Math.imul(hash^d[i],16777619)>>>0;hash=Math.imul(hash^d[i+1],16777619)>>>0;}return hash;}
+async function assemblyTraceFollowsImage(canvas){
+ const ctx=canvas.getContext('2d'),{drawImage,moveTo,stroke}=ctx;
+ let bounds,point,aligned=false;
+ const anchors=[[347,94],[136,410],[169,449],[387,389]];
+ ctx.drawImage=function(image,left,top,width,height){
+  bounds={left,top,width,height};
+  return drawImage.call(this,image,left,top,width,height);
+ };
+ ctx.moveTo=function(x,y){point={x,y};return moveTo.call(this,x,y);};
+ ctx.stroke=function(){
+  if(bounds&&point&&ctx.strokeStyle==='#fbc18a'){
+   const x=(point.x-bounds.left)/bounds.width;
+   const y=(point.y-bounds.top)/bounds.height;
+   aligned=anchors.some(([px,py])=>Math.hypot(x-px/917,y-py/830)<.003);
+  }
+  return stroke.call(this);
+ };
+ try{return await until(()=>aligned,4500);}
+ finally{Object.assign(ctx,{drawImage,moveTo,stroke});}
+}
 document.querySelector('#run').onclick=async()=>{
  const doc=frame.contentDocument,win=frame.contentWindow,results=[];
  const check=(name,pass,detail)=>{results.push({name,pass:!!pass,...(detail?{detail}: {})});output.textContent=JSON.stringify(results,null,2);};
@@ -35,11 +55,14 @@ document.querySelector('#run').onclick=async()=>{
    videos.forEach((v,i)=>check(field+': video '+(i+1)+' advances',!v.paused&&v.currentTime!==before[i],{before:before[i],after:v.currentTime,source:v.getAttribute('src')}));
   }
   const mapAssembly=doc.querySelector('#project-space canvas[data-project-animation="assembly"]');
+  check('Map assembly trace follows the cropped CAD',await assemblyTraceFollowsImage(mapAssembly));
   await wait(160);
   const assemblyFrame=pixels(mapAssembly);
   await wait(700);
   check('Map assembly trace moves over the CAD render',pixels(mapAssembly)!==assemblyFrame);
   select('coding');await wait(400);
+  const scan=doc.querySelector('#project-space .scan-frame img');
+  check('Terminal inspection loads the first time it opens',await until(()=>scan?.complete&&scan.naturalWidth>0&&scan.dataset.ready==='true'));
   const css=[...doc.querySelectorAll('#project-space .scan-beam')];
   const style=e=>{const s=win.getComputedStyle(e);return [s.transform,s.top,s.opacity].join('|');};
   const bend=doc.querySelector('#project-space .fem-canvas');
@@ -57,6 +80,7 @@ document.querySelector('#run').onclick=async()=>{
   check('Data and modelling shows moving robot footage',analytics.currentTime!==analyticsTime);
   check('Data and modelling shows the animated copper specimen',pixels(copper)!==copperFrame);
   select('electronics');await wait(400);
+  check('Electronics reuses the loaded terminal inspection image',doc.querySelector('#project-space .scan-frame img')===scan);
   const signal=doc.querySelector('#project-space canvas'),initial=pixels(signal);await wait(700);
   check('Fatigue canvas changes pixels',initial!==pixels(signal));
   win.portfolioMotion.setEnabled(false);const held=pixels(signal);win.portfolioMotion.setEnabled(true);
@@ -88,6 +112,7 @@ document.querySelector('#run').onclick=async()=>{
   for(const id of ['assembly','irp','iep']){
     const scene=projectDoc.querySelector('#'+id+' canvas');
     scene.scrollIntoView({block:'center',behavior:'instant'});
+    if(id==='assembly')check('Project assembly trace follows the full-size CAD',await assemblyTraceFollowsImage(scene));
     await wait(400);
     const original=pixels(scene);
     await wait(180);

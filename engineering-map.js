@@ -12,8 +12,26 @@
   const media = window.portfolioMedia;
   const cards = new Map();
   const clips = new Map();
+  const inspection = new Image();
+  const inspectionPreview = new URL('assets/high-res/inspection-map.webp', document.baseURI).href;
+  const inspectionFull = new URL('assets/high-res/inspection-bed-teal.webp', document.baseURI).href;
   let active = null, leaveTimer = 0, dismissTimer = 0, geometryFrame = 0;
   let keyboard = false, pinned = false, scrollFrame = 0, lastScroll = -Infinity;
+
+  inspection.alt = 'Concept visualization of a terminal link beneath a scanner with three surrounding cameras';
+  inspection.className = 'scan-map-image';
+  inspection.decoding = 'async';
+  inspection.fetchPriority = 'low';
+  inspection.addEventListener('load', () => { inspection.dataset.ready = 'true'; });
+  inspection.addEventListener('error', () => {
+    if (inspection.src === inspectionPreview) inspection.src = inspectionFull;
+  });
+
+  function prepareInspection() {
+    if (!inspection.hasAttribute('src') || (inspection.complete && !inspection.naturalWidth)) {
+      inspection.src = inspectionPreview;
+    }
+  }
 
   function registerClip(src, poster, title) {
     const video = document.createElement('video');
@@ -29,6 +47,13 @@
   registerClip(entries.gripper.mechanismVideo, 'assets/high-res/gripper-mechanism.webp', 'Three-jaw gripper mechanism animation');
   registerClip(entries.cam.video, 'assets/high-res/gearbox-cam.webp', 'Gearbox housing CAM simulation');
   if (!navigator.connection?.saveData) {
+    const inspectNearby = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      prepareInspection();
+      inspectNearby.disconnect();
+    }, { rootMargin: '180px 0px' });
+    inspectNearby.observe(map);
+
     const nearby = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return;
       clips.forEach(media.prepare);
@@ -112,14 +137,10 @@
       square.classList.add('scan-visual');
       const frame = document.createElement('span');
       frame.className = 'scan-frame';
-      const img = document.createElement('img');
-      img.src = 'assets/high-res/inspection-bed.webp';
-      img.alt = 'Concept visualization of a terminal link beneath a scanner with three surrounding cameras';
-      img.decoding = 'async';
       const beam = document.createElement('span');
       beam.className = 'scan-beam';
       beam.setAttribute('aria-hidden', 'true');
-      frame.append(img, beam);
+      frame.append(beam);
       square.append(frame);
     } else if (data.video) {
       if (id === 'gripper' && key !== 'mechanical') square.classList.add('square--cell');
@@ -164,6 +185,12 @@
     active = key;
     if (!cards.has(key)) cards.set(key, groups[key].map(id => makeCard(key, id)));
     space.replaceChildren(...cards.get(key));
+    const scanFrame = space.querySelector('.scan-frame');
+    if (scanFrame) {
+      inspection.fetchPriority = 'high';
+      scanFrame.prepend(inspection);
+      prepareInspection();
+    }
     space.querySelectorAll('[data-map-clip]').forEach(square => {
       const clip = clips.get(square.dataset.mapClip);
       if (!clip.poster) clip.poster = clip.dataset.poster;
