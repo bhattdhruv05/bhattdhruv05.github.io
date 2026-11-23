@@ -75,7 +75,8 @@ document.querySelector('#run').onclick=async()=>{
   doc.querySelector('#contact').scrollIntoView({behavior:'instant'});await until(()=>video.paused,2500);check('Offscreen video pauses',video.paused,{visual:video.getBoundingClientRect().toJSON(),viewport:win.innerHeight});
   await new Promise(resolve=>{frame.onload=resolve;frame.src='../projects/';});
   const projectDoc=frame.contentDocument,projectWin=frame.contentWindow;
-  check('Project clips have sources and posters on page load',[...projectDoc.querySelectorAll('.project-media video')].every(v=>v.src&&v.poster&&v.preload==='auto'));
+  const projectCam=projectDoc.querySelector('#cam video');
+  check('Offscreen CAM shows a poster without eagerly downloading video',projectCam.poster&&projectCam.dataset.src&&!projectCam.getAttribute('src'));
   projectWin.portfolioMotion.setEnabled(true);
   for(const id of ['gripper','cam']){
     projectDoc.querySelector('#'+id).scrollIntoView({behavior:'instant'});

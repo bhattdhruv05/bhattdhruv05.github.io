@@ -81,11 +81,13 @@
     return state;
   }
 
-  function prepare(video, src) {
+  function prepare(video) {
     register(video);
-    video.preload = navigator.connection?.saveData ? 'metadata' : 'auto';
-    if (src) video.src = src;
-    return video;
+    if (video.dataset.poster && !video.poster) video.poster = video.dataset.poster;
+    if (!video.getAttribute('src') && video.dataset.src) {
+      video.preload = 'metadata';
+      video.src = video.dataset.src;
+    }
   }
 
   function attempt(video, state) {
@@ -115,6 +117,10 @@
   }
   function play(video) {
     const state = register(video);
+    if (video.dataset?.src && video.preload !== 'auto') {
+      prepare(video);
+      video.preload = 'auto';
+    }
     if (!state.wanted) {
       state.generation++;
       state.abortRetries = 0;
@@ -150,12 +156,21 @@
     error.className = 'media-error';
     error.hidden = true;
     root.appendChild(error);
-    prepare(video);
   });
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => {
       entries.forEach(entry => setVisible(entry.target, entry.isIntersecting));
     }, { rootMargin: '80px 0px' });
     media.forEach(root => { setVisible(root, false); observer.observe(root); });
+    if (!navigator.connection?.saveData) {
+      const nearby = new IntersectionObserver(entries => {
+        entries.forEach(({ target, isIntersecting }) => {
+          if (!isIntersecting) return;
+          prepare(target);
+          nearby.unobserve(target);
+        });
+      }, { rootMargin: '200px 0px' });
+      document.querySelectorAll('.project-media video[data-src]').forEach(video => nearby.observe(video));
+    }
   } else media.forEach(root => setVisible(root, true));
 })();

@@ -337,6 +337,11 @@
 
   const assemblyCad = new Image();
   const assemblyCadUrl = new URL('assets/high-res/spring-insertion.webp', document.currentScript.src);
+  const assemblyNearby = new IntersectionObserver(([entry]) => {
+    if (!entry.isIntersecting) return;
+    assemblyCad.src = assemblyCadUrl.href;
+    assemblyNearby.disconnect();
+  }, { rootMargin: '300px 0px' });
   const assemblySteps = [
     { title: 'Feed the spring', path: [[347,94],[298,180],[235,284]] },
     { title: 'Position the terminal link', path: [[136,410],[161,391],[192,402]] },
@@ -475,6 +480,8 @@
     times.set(canvas, 0);
     if (canvas.dataset.projectAnimation === 'assembly' && !assemblyCad.naturalWidth) {
       assemblyCad.addEventListener('load', () => draw(canvas, times.get(canvas)), { once: true });
+      if (canvas.classList.contains('project-animation')) assemblyNearby.observe(canvas);
+      else if (!assemblyCad.getAttribute('src')) assemblyCad.src = assemblyCadUrl.href;
     }
     measure(canvas);
     draw(canvas, 0);
@@ -494,7 +501,6 @@
   }
 
   window.portfolioScenes = { preview };
-  assemblyCad.src = assemblyCadUrl.href;
   document.querySelectorAll('.project-media canvas.project-animation').forEach(mount);
   motion.subscribe(sync);
 })();

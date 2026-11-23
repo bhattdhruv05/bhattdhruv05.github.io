@@ -52,7 +52,7 @@
     }
 
     function drawGlobe() {
-      const spin = rotation(elapsed * .14 + .42, .56 * Math.sin(elapsed * .19 + .6));
+      const spin = rotation(elapsed * .34 + .42, .64 * Math.sin(elapsed * .32 + .6));
       for (const { element, normal, radius } of rings) {
         drawRing(element, radius, spin(normal));
       }
@@ -63,7 +63,7 @@
       const lightPhase = Math.min(1, Math.max(0, phase - .045));
       coreCharge.setAttribute('opacity', (.48 * Math.sin(Math.PI * lightPhase) ** 6).toFixed(3));
       orbits.forEach(({ element, radius, normal, major, minor, front, marker }, index) => {
-        const orbitSpin = rotation(elapsed * (.075 + index * .012), .46 * Math.sin(elapsed * .15 + index * .85));
+        const orbitSpin = rotation(elapsed * (.17 + index * .025), .48 * Math.sin(elapsed * .27 + index * .85));
         const u = orbitSpin(major), v = orbitSpin(minor);
         drawRing(element, radius, orbitSpin(normal));
 
@@ -88,7 +88,7 @@
     }
 
     function tickGlobe(now) {
-      elapsed += Math.min(.05, (now - last) / 1000);
+      elapsed += Math.min(.10, (now - last) / 1000);
       last = now;
       drawGlobe();
       frame = requestAnimationFrame(tickGlobe);

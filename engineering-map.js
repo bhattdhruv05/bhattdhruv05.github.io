@@ -15,18 +15,27 @@
   let active = null, leaveTimer = 0, dismissTimer = 0, geometryFrame = 0;
   let keyboard = false, pinned = false, scrollFrame = 0, lastScroll = -Infinity;
 
-  function prepareClip(src, poster, title) {
+  function registerClip(src, poster, title) {
     const video = document.createElement('video');
     video.loop = true;
-    video.poster = poster;
+    video.dataset.src = src;
+    video.dataset.poster = poster;
     video.setAttribute('aria-label', title);
-    clips.set(src, media.prepare(video, src));
+    clips.set(src, video);
   }
 
-  // Hold one buffered video per source, including clips shared by several fields.
-  prepareClip(entries.gripper.video, 'assets/high-res/gripper-cell.webp', 'Robot-cell pick-and-place simulation');
-  prepareClip(entries.gripper.mechanismVideo, 'assets/high-res/gripper-mechanism.webp', 'Three-jaw gripper mechanism animation');
-  prepareClip(entries.cam.video, 'assets/high-res/gearbox-cam.webp', 'Gearbox housing CAM simulation');
+  // Reuse each clip across fields and warm its metadata only when visitors reach the map.
+  registerClip(entries.gripper.video, 'assets/high-res/gripper-cell.webp', 'Robot-cell pick-and-place simulation');
+  registerClip(entries.gripper.mechanismVideo, 'assets/high-res/gripper-mechanism.webp', 'Three-jaw gripper mechanism animation');
+  registerClip(entries.cam.video, 'assets/high-res/gearbox-cam.webp', 'Gearbox housing CAM simulation');
+  if (!navigator.connection?.saveData) {
+    const nearby = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      clips.forEach(media.prepare);
+      nearby.disconnect();
+    });
+    nearby.observe(map);
+  }
 
   function pause() {
     space.querySelectorAll('video').forEach(media.pause);
@@ -155,7 +164,11 @@
     active = key;
     if (!cards.has(key)) cards.set(key, groups[key].map(id => makeCard(key, id)));
     space.replaceChildren(...cards.get(key));
-    space.querySelectorAll('[data-map-clip]').forEach(square => square.prepend(clips.get(square.dataset.mapClip)));
+    space.querySelectorAll('[data-map-clip]').forEach(square => {
+      const clip = clips.get(square.dataset.mapClip);
+      if (!clip.poster) clip.poster = clip.dataset.poster;
+      square.prepend(clip);
+    });
     space.dispatchEvent(new Event('portfolio:previews', { bubbles: true }));
     space.classList.add('visible');
     map.classList.add('has-selection');
