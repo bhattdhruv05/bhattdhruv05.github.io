@@ -15,11 +15,17 @@ document.querySelector('#run').onclick=async()=>{
   doc.querySelector('#explorer').scrollIntoView();await wait(200);
   check('Previews autoplay without a global control',win.portfolioMotion.enabled&&!doc.querySelector('[data-motion-toggle]'));
   const rings=[...doc.querySelectorAll('#map-globe [data-ring-axis]')];
-  const orbitFrame=()=>rings.map(ring=>ring.getAttribute('transform')+' '+ring.getAttribute('ry')).join('|');
-  const firstOrbit=orbitFrame();await wait(500);
-  const secondOrbit=orbitFrame();await wait(500);
-  check('Globe continuously changes tilt from the first frame',rings.length>=3&&firstOrbit!==secondOrbit&&secondOrbit!==orbitFrame());
-  check('Globe has a steady teal halo',doc.querySelector('#map-globe-halo')&&!doc.querySelector('#map-glow-pulse'));
+  const orbits=[...doc.querySelectorAll('#map-globe [data-orbit-tilt]')];
+  const orbitFrame=tracks=>tracks.map(ring=>ring.getAttribute('transform')+' '+ring.getAttribute('ry')).join('|');
+  const firstOrbit=orbitFrame(rings), outerStart=orbitFrame(orbits);await wait(500);
+  const secondOrbit=orbitFrame(rings);await wait(500);
+  check('Globe continuously changes tilt from the first frame',rings.length>=3&&firstOrbit!==secondOrbit&&secondOrbit!==orbitFrame(rings));
+  check('Outer orbits change their projected tilt',orbits.length===3&&outerStart!==orbitFrame(orbits));
+  const core=doc.querySelector('#map-globe-core');
+  check('The core light stays centered as the rings move',core?.parentElement.id==='map-globe'&&!core.querySelector('animate'));
+  const charge=doc.querySelector('#map-globe-charge');
+  const markers=[...doc.querySelectorAll('#map-globe .map-orbit-marker')];
+  check('Orbit markers gather at the core as its light brightens',await until(()=>Number(charge.getAttribute('opacity'))>.4&&markers.every(point=>Math.hypot(point.cx.baseVal.value-120,point.cy.baseVal.value-111)<12)));
   const select=key=>doc.querySelector(`[data-field="${key}"]`).click();
   for(const field of ['mechanical','robotics']){
    select(field);const videos=[...doc.querySelectorAll('#project-space video')];

@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#f2e7d6">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23315d64'/%3E%3Cpath d='M8 8h7c10 0 10 16 0 16H8z' fill='none' stroke='white' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="portfolio.css?v=editorial-13">
-<link rel="stylesheet" href="visuals.css?v=editorial-3"><link rel="preload" href="assets/fonts/inter-400.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" as="image" href="assets/high-res/inspection-bed.webp"><link rel="preload" as="image" href="assets/high-res/spring-insertion.webp"><script defer src="assets/vendor/motion/motion-14.14.0.js"></script><script defer src="site-motion.js?v=editorial-2"></script><script defer src="media-playback.js?v=5"></script><script defer src="engineering-projection.js?v=2"></script><script defer src="fem-bending.js?v=4"></script><script defer src="map-pattern.js?v=orbital-5"></script><script defer src="map-data.js?v=editorial-4"></script><script defer src="engineering-scenes.js?v=7"></script><script defer src="engineering-map.js?v=editorial-6"></script><script defer src="featured-projects.js?v=2"></script></head>
+<link rel="stylesheet" href="visuals.css?v=editorial-3"><link rel="preload" href="assets/fonts/inter-400.woff" as="font" type="font/woff" crossorigin><link rel="preload" href="assets/fonts/barlow-condensed-900.woff2" as="font" type="font/woff2" crossorigin><link rel="preload" as="image" href="assets/high-res/inspection-bed.webp"><link rel="preload" as="image" href="assets/high-res/spring-insertion.webp"><script defer src="assets/vendor/motion/motion-14.14.0.js"></script><script defer src="site-motion.js?v=editorial-2"></script><script defer src="media-playback.js?v=5"></script><script defer src="engineering-projection.js?v=2"></script><script defer src="fem-bending.js?v=4"></script><script defer src="map-pattern.js?v=orbital-6"></script><script defer src="map-data.js?v=editorial-4"></script><script defer src="engineering-scenes.js?v=7"></script><script defer src="engineering-map.js?v=editorial-6"></script><script defer src="featured-projects.js?v=2"></script></head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 <div class="shell">
@@ -46,23 +46,31 @@
 <svg id="map-globe" class="map-idle" viewBox="0 0 240 222" aria-hidden="true" focusable="false">
   <defs>
     <radialGradient id="map-globe-shading" cx="36%" cy="27%" r="77%">
-      <stop offset="0" stop-color="#5c9691"/>
-      <stop offset=".62" stop-color="#33676a"/>
+      <stop offset="0" stop-color="#426d70"/>
+      <stop offset=".62" stop-color="#28555b"/>
       <stop offset="1" stop-color="#16373d"/>
     </radialGradient>
     <radialGradient id="map-globe-halo">
-      <stop offset=".38" stop-color="#8ae6cf" stop-opacity=".34"/>
-      <stop offset=".66" stop-color="#6bc0af" stop-opacity=".20"/>
-      <stop offset="1" stop-color="#6bc0af" stop-opacity="0"/>
+      <stop offset=".44" stop-color="#80d0bf" stop-opacity=".20"/>
+      <stop offset=".72" stop-color="#80d0bf" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#80d0bf" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="map-globe-core-light">
+      <stop offset="0" stop-color="#bcf4e2" stop-opacity=".55"/>
+      <stop offset=".35" stop-color="#a9eadb" stop-opacity=".36"/>
+      <stop offset=".67" stop-color="#86d1c3" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#86d1c3" stop-opacity="0"/>
     </radialGradient>
   </defs>
   <circle cx="120" cy="111" r="93" fill="url(#map-globe-halo)"/>
   <g class="map-orbit-back">
-    <ellipse cx="120" cy="111" rx="103" ry="33" transform="rotate(-27 120 111)"/>
-    <ellipse cx="120" cy="111" rx="98" ry="42" transform="rotate(30 120 111)"/>
-    <ellipse cx="120" cy="111" rx="96" ry="27" transform="rotate(73 120 111)"/>
+    <ellipse cx="120" cy="111" rx="103" ry="33" data-orbit-tilt="-27" transform="rotate(-27 120 111)"/>
+    <ellipse cx="120" cy="111" rx="98" ry="42" data-orbit-tilt="30" transform="rotate(30 120 111)"/>
+    <ellipse cx="120" cy="111" rx="96" ry="27" data-orbit-tilt="73" transform="rotate(73 120 111)"/>
   </g>
   <circle cx="120" cy="111" r="58" fill="url(#map-globe-shading)" stroke="#a5c6b5" stroke-width="1.2"/>
+  <circle id="map-globe-core" cx="120" cy="111" r="56" fill="url(#map-globe-core-light)"/>
+  <circle id="map-globe-charge" cx="120" cy="111" r="56" fill="url(#map-globe-core-light)" opacity="0"/>
   <g id="map-globe-rotor" class="map-globe-rotor">
     <g class="map-globe-mesh">
       <ellipse cx="120" cy="111" rx="56" ry="15" data-ring-axis="1 0 0" transform="rotate(64 120 111)"/>
@@ -73,26 +81,17 @@
     <ellipse class="map-rotor-track" cx="120" cy="111" rx="49" ry="25" data-ring-axis="0 .707 .707" pathLength="100"
       stroke-dasharray="25 8 8 7 24 6 5 17"/>
   </g>
-  <g transform="rotate(-27 120 111)">
-    <path class="map-orbit-front" d="M17 111a103 33 0 0 0 206 0"/>
-    <circle class="map-orbit-marker map-orbit-accent" r="4.2">
-      <animateMotion path="M17 111a103 33 0 0 0 206 0a103 33 0 0 0-206 0" dur="7s" begin="-1s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="1;1;.4;.4;1" keyTimes="0;.47;.55;.91;1" dur="7s" begin="-1s" repeatCount="indefinite"/>
-    </circle>
+  <g class="map-orbit-face">
+    <path class="map-orbit-front"/>
+    <circle class="map-orbit-marker map-orbit-accent" cx="170" cy="109" r="4.2"/>
   </g>
-  <g transform="rotate(30 120 111)">
-    <path class="map-orbit-front" d="M22 111a98 42 0 0 0 196 0"/>
-    <circle class="map-orbit-marker" r="3.5">
-      <animateMotion path="M22 111a98 42 0 0 1 196 0a98 42 0 0 1-196 0" dur="10s" begin="-3s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values=".4;.4;1;1;.4" keyTimes="0;.43;.53;.93;1" dur="10s" begin="-3s" repeatCount="indefinite"/>
-    </circle>
+  <g class="map-orbit-face">
+    <path class="map-orbit-front"/>
+    <circle class="map-orbit-marker" cx="45" cy="76" r="3.5"/>
   </g>
-  <g transform="rotate(73 120 111)">
-    <path class="map-orbit-front" d="M24 111a96 27 0 0 0 192 0"/>
-    <circle class="map-orbit-marker" r="2.8">
-      <animateMotion path="M24 111a96 27 0 0 0 192 0a96 27 0 0 0-192 0" dur="12s" begin="-6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="1;1;.4;.4;1" keyTimes="0;.47;.55;.91;1" dur="12s" begin="-6s" repeatCount="indefinite"/>
-    </circle>
+  <g class="map-orbit-face">
+    <path class="map-orbit-front"/>
+    <circle class="map-orbit-marker" cx="93" cy="170" r="2.8"/>
   </g>
 </svg>
 <div id="project-space" class="project-space" role="region" aria-label="Projects in selected field"></div></div>

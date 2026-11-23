@@ -9,29 +9,82 @@
   if (globe) {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const playback = window.portfolioMotion;
+    const coreCharge = globe.querySelector('#map-globe-charge');
     const rings = [...globe.querySelectorAll('[data-ring-axis]')].map(element => ({
       element,
       normal: element.dataset.ringAxis.split(' ').map(Number),
       radius: Number(element.getAttribute('rx'))
     }));
+    const orbitFaces = [...globe.querySelectorAll('.map-orbit-face')];
+    const orbits = [...globe.querySelectorAll('[data-orbit-tilt]')].map((element, index) => {
+      const tilt = Number(element.dataset.orbitTilt) * Math.PI / 180;
+      const radius = Number(element.getAttribute('rx'));
+      const foreshortening = Number(element.getAttribute('ry')) / radius;
+      const inclination = Math.sqrt(1 - foreshortening ** 2);
+      const cos = Math.cos(tilt), sin = Math.sin(tilt);
+      return {
+        element, radius,
+        normal: [sin * inclination, -cos * inclination, foreshortening],
+        major: [cos, sin, 0],
+        minor: [-sin * foreshortening, cos * foreshortening, inclination],
+        front: orbitFaces[index].querySelector('path'),
+        marker: orbitFaces[index].querySelector('circle')
+      };
+    });
     let inView = false;
     let frame = 0, last = 0, elapsed = 0;
 
-    function drawGlobe() {
-      const yaw = elapsed * .14 + .42;
-      const pitch = .56 * Math.sin(elapsed * .19 + .6);
+    function rotation(yaw, pitch) {
       const cosYaw = Math.cos(yaw), sinYaw = Math.sin(yaw);
       const cosPitch = Math.cos(pitch), sinPitch = Math.sin(pitch);
-      for (const { element, normal: [x, y, z], radius } of rings) {
+      return ([x, y, z]) => {
         const nx = x * cosYaw + z * sinYaw;
         const depth = z * cosYaw - x * sinYaw;
-        const ny = y * cosPitch - depth * sinPitch;
-        const nz = y * sinPitch + depth * cosPitch;
-        // An orbit viewed edge-on becomes a line. Its other radius stays constant.
-        const tilt = Math.atan2(nx, -ny) * 180 / Math.PI;
-        element.setAttribute('ry', Math.max(.55, Math.abs(nz) * radius).toFixed(2));
-        element.setAttribute('transform', `rotate(${tilt.toFixed(2)} 120 111)`);
+        return [nx, y * cosPitch - depth * sinPitch, y * sinPitch + depth * cosPitch];
+      };
+    }
+
+    function drawRing(element, radius, [nx, ny, nz]) {
+      // An orbit viewed edge-on becomes a line. Its other radius stays constant.
+      const tilt = Math.atan2(nx, -ny) * 180 / Math.PI;
+      element.setAttribute('ry', Math.max(.55, Math.abs(nz) * radius).toFixed(2));
+      element.setAttribute('transform', `rotate(${tilt.toFixed(2)} 120 111)`);
+    }
+
+    function drawGlobe() {
+      const spin = rotation(elapsed * .14 + .42, .56 * Math.sin(elapsed * .19 + .6));
+      for (const { element, normal, radius } of rings) {
+        drawRing(element, radius, spin(normal));
       }
+      // The markers gather smoothly, brighten the core, then return to orbit.
+      const phase = ((elapsed + 4) % 10.8 - 6.4) / 3.4;
+      const gather = Math.sin(Math.PI * Math.min(1, Math.max(0, phase))) ** 2;
+      const inward = 1 - .96 * gather;
+      const lightPhase = Math.min(1, Math.max(0, phase - .045));
+      coreCharge.setAttribute('opacity', (.48 * Math.sin(Math.PI * lightPhase) ** 6).toFixed(3));
+      orbits.forEach(({ element, radius, normal, major, minor, front, marker }, index) => {
+        const orbitSpin = rotation(elapsed * (.075 + index * .012), .46 * Math.sin(elapsed * .15 + index * .85));
+        const u = orbitSpin(major), v = orbitSpin(minor);
+        drawRing(element, radius, orbitSpin(normal));
+
+        // Trace the half nearest the viewer so it passes in front of the globe.
+        const project = angle => {
+          const a = radius * Math.cos(angle), b = radius * Math.sin(angle);
+          return [120 + a * u[0] + b * v[0], 111 + a * u[1] + b * v[1], a * u[2] + b * v[2]];
+        };
+        const near = Math.atan2(v[2], u[2]) - Math.PI / 2;
+        const arc = [];
+        for (let step = 0; step <= 24; step++) {
+          const [x, y] = project(near + step * Math.PI / 24);
+          arc.push(`${step ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`);
+        }
+        front.setAttribute('d', arc.join(' '));
+        const [x, y, z] = project(elapsed * (.47 - index * .065) + 1 + index * 1.9);
+        marker.setAttribute('cx', (120 + (x - 120) * inward).toFixed(2));
+        marker.setAttribute('cy', (111 + (y - 111) * inward).toFixed(2));
+        const orbitalOpacity = .25 + .75 * Math.min(1, Math.max(0, .5 + z / 24));
+        marker.setAttribute('opacity', (orbitalOpacity * (1 - .7 * gather ** 2)).toFixed(2));
+      });
     }
 
     function tickGlobe(now) {
@@ -44,13 +97,11 @@
     function syncGlobe() {
       const running = inView && playback.running && !preference.matches;
       if (running) {
-        globe.unpauseAnimations?.();
         if (!frame) {
           last = performance.now();
           frame = requestAnimationFrame(tickGlobe);
         }
       } else {
-        globe.pauseAnimations?.();
         cancelAnimationFrame(frame);
         frame = 0;
       }
